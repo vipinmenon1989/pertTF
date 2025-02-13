@@ -35,7 +35,7 @@ def train(model: nn.Module,
           vocab,
           optim_dict: Dict,
           epoch = 0,
-          logger = None,
+          logger = scg.logger,
           device = None) -> None:
     """
     Train the model for one epoch.
@@ -409,7 +409,7 @@ def eval_testdata(
     include_types: List[str] = ["cls","pert"],
     input_layer_key = "X_binned",
     next_layer_key = "X_binned_next",
-    logger = None,
+    logger = scg.logger,
 ) -> Optional[Dict]:
     """evaluate the model on test dataset of adata_t"""
     model.eval()
@@ -650,7 +650,7 @@ def eval_testdata(
     return results
 
 def wrapper_train(model, config, data_gen,
-                  logger = None,
+                  logger = scg.logger,
                   save_dir = None,
                   device = None):
 

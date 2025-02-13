@@ -15,6 +15,7 @@ from torchtext._torchtext import (
     Vocab as VocabPybind,
 )
 
+import scgpt as scg
 from scgpt.tokenizer import tokenize_and_pad_batch, random_mask_value
 from scgpt import SubsetsBatchSampler
 
@@ -95,7 +96,7 @@ def produce_training_datasets(adata, config,
                               next_layer_key = "X_binned_next",
                               cell_type_to_index = None,
                               genotype_to_index = None,
-                              logger = None):
+                              logger = scg.logger):
     # add necessary columns to adata
     adata.var["gene_name"] = adata.var.index.tolist()
 
