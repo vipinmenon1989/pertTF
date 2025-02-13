@@ -87,10 +87,6 @@ def add_pred_layer(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned',
     return target_layers
 
 
-def add_pred_layer(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
-    """
-    Just a duplicate of input layers
-    """
 
 
 
