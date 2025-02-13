@@ -652,7 +652,8 @@ def eval_testdata(
 def wrapper_train(model, config, data_gen,
                   logger = scg.logger,
                   save_dir = None,
-                  device = None):
+                  device = None,
+                  eval_adata_dict: Dict = {}):
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -793,57 +794,32 @@ def wrapper_train(model, config, data_gen,
             torch.save(best_model.state_dict(), save_dir / f"model_e{best_model_epoch}.pt")
 
             # eval on testdata
-            results = eval_testdata(
-                #best_model,
-                model, # use current model
-                adata_t=data_gen['adata_sorted'], # if config.per_seq_batch_sample else adata,
-                gene_ids = data_gen['gene_ids'],
-                train_data_dict = data_gen,
-                config=config,
-                include_types=["cls"],
-                logger=logger,
-            )
+            for eval_dict_key, eval_adata in eval_adata_dict.items():
+                results = eval_testdata(
+                    #best_model,
+                    model, # use current model
+                    adata_t = eval_adata, #adata_t=data_gen['adata_sorted'], # if config.per_seq_batch_sample else adata,
+                    gene_ids = data_gen['gene_ids'],
+                    train_data_dict = data_gen,
+                    config=config,
+                    include_types=["cls"],
+                    logger=logger,
+                )
 
-            metrics_to_log = {"test/" + k: v for k, v in results.items() if k != "adata"}
-            #if "umap" in results:
-            #    results["umap"].savefig(save_dir / f"embeddings_umap[cls]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
+                metrics_to_log = {"test/" + k: v for k, v in results.items() if k != "adata"}
+                #if "umap" in results:
+                #    results["umap"].savefig(save_dir / f"embeddings_umap[cls]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
 
-
-            if "batch_umap" in results:
-                results["batch_umap"].savefig(save_dir / f"embeddings_batch_umap[cls]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
-                metrics_to_log["test/batch_umap"] = wandb.Image(
-                    str(save_dir / f"embeddings_batch_umap[cls]_e{best_model_epoch}.png"),
-                    caption=f"celltype avg_bio epoch {best_model_epoch}",
-                )
-            if config.cell_type_classifier:
-                results["celltype_umap"].savefig(save_dir / f"embeddings_celltype_umap[cls]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
-                metrics_to_log["test/celltype_umap"] = wandb.Image(
-                    str(save_dir / f"embeddings_celltype_umap[cls]_e{best_model_epoch}.png"),
-                    caption=f"celltype avg_bio epoch {best_model_epoch}",
-                )
-            if config.perturbation_classifier_weight > -1:
-                results["genotype_umap"].savefig(save_dir / f"embeddings_genotype_umap[pert]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
-                metrics_to_log["test/genotype_umap"] = wandb.Image(
-                    str(save_dir / f"embeddings_genotype_umap[pert]_e{best_model_epoch}.png"),
-                    caption=f"genotype avg_bio epoch {best_model_epoch}",
-                )
-                results["genotype_umap2"].savefig(save_dir / f"embeddings_genotype_umap[pert]_e{best_model_epoch}_2.png", dpi=300,bbox_inches='tight')
-                metrics_to_log["test/genotype_umap2"] = wandb.Image(
-                    str(save_dir / f"embeddings_genotype_umap[pert]_e{best_model_epoch}_2.png"),
-                    caption=f"genotype2 avg_bio epoch {best_model_epoch}",
-                )
-                results["pred_genotype"].savefig(save_dir / f"embeddings_pred_genotype_umap[pert]_e{best_model_epoch}_2.png", dpi=300,bbox_inches='tight')
-                metrics_to_log["test/pred_genotype_umap2"] = wandb.Image(
-                    str(save_dir / f"embeddings_pred_genotype_umap[pert]_e{best_model_epoch}_2.png"),
-                    caption=f"pred genotype avg_bio epoch {best_model_epoch}",
-                )
-                results["pred_celltype"].savefig(save_dir / f"embeddings_pred_celltype_umap[pert]_e{best_model_epoch}_2.png", dpi=300,bbox_inches='tight')
-                metrics_to_log["test/pred_celltype_umap2"] = wandb.Image(
-                    str(save_dir / f"embeddings_pred_celltype_umap[pert]_e{best_model_epoch}_2.png"),
-                    caption=f"pred celltype avg_bio epoch {best_model_epoch}",
-                )
-            if "adata" in results:
-                results["adata"].write_h5ad(save_dir / f'adata_last_validation.h5ad')
+                save_image_types=["batch_umap","celltype_umap","genotype_umap","genotype_umap2","pred_genotype","pred_celltype"]
+                for res_key, res_img_val in results.items():
+                    if res_key in save_image_types:
+                        res_img_val.savefig(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png", dpi=300,bbox_inches='tight')
+                        metrics_to_log[f"test/{res_key}"] = wandb.Image(
+                            str(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png"),
+                            caption=f"{res_key} epoch {epoch}",
+                        )
+                if "adata" in results:
+                    results["adata"].write_h5ad(save_dir / f'adata_last_validation_{eval_dict_key}.h5ad')
 
             #if "adata" in results_p:
             #    results_p["adata"].write_h5ad(save_dir / f'adata_last_validation.h5ad')

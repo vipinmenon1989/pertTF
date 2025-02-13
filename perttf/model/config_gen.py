@@ -3,11 +3,12 @@ import sys
 import wandb
 
 from scgpt.utils import set_seed
+import copy
 
 # Check the Python interpreter being used
 #print(sys.executable)
 
-def generate_config(parameter_dict):
+def generate_config(parameter_dict,wandb_mode="disabled"):
     # If it's not the desired interpreter, set the WANDB__EXECUTABLE environment variable
     # For example, if you want to use Python 3.8:
     os.environ["WANDB__EXECUTABLE"] = "/usr/local/bin/python"  # Replace with the actual path
@@ -31,11 +32,11 @@ def generate_config(parameter_dict):
           reinit=True,
           settings=wandb.Settings(start_method="fork"),
           #mode="online",
-          mode="disabled", #
+          mode=wandb_mode, #
       )
       config = wandb.config
     else:
-      config = copy.deepcopy(hyperparameter_defaults)
+      config = copy.deepcopy(parameter_dict)
       run=None
     print(config)
 
