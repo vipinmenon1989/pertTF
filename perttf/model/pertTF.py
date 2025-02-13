@@ -1,0 +1,284 @@
+from torch import nn, Tensor
+from typing import Dict, Mapping, Optional, Tuple, Any, Union
+#from scgpt.model import BatchLabelEncoder
+from tqdm import trange
+
+import torch
+from torch import nn
+
+import scgpt as scg
+from scgpt.model import TransformerModel
+
+class PerterbationDecoder(nn.Module):
+    """
+    Decoder for perturbation task.
+    revised from scGPT.ClsDecoder
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        n_pert: int,
+        nlayers: int = 3,
+        activation: callable = nn.ReLU,
+    ):
+        super().__init__()
+        # module list
+        self._decoder = nn.ModuleList()
+        for i in range(nlayers - 1):
+            self._decoder.append(nn.Linear(d_model, d_model))
+            self._decoder.append(activation())
+            self._decoder.append(nn.LayerNorm(d_model))
+        self.out_layer = nn.Linear(d_model, n_pert)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Args:
+            x: Tensor, shape [batch_size, embsize]
+        """
+        for layer in self._decoder:
+            x = layer(x)
+        return self.out_layer(x)
+
+
+
+
+class Batch2LabelEncoder(nn.Module):
+    def __init__(
+        self,
+        num_embeddings: int,
+        embedding_dim: int,
+        padding_idx: Optional[int] = None,
+    ):
+        super().__init__()
+        self.embedding = nn.Embedding(
+            num_embeddings, embedding_dim, padding_idx=padding_idx
+        )
+        self.enc_norm = nn.LayerNorm(embedding_dim)
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.embedding(x)  # (batch, embsize)
+        x = self.enc_norm(x)
+        return x
+
+
+
+class PerturbationTFModel(TransformerModel):
+    def __init__(self,
+                 n_pert: int,
+                 nlayers_pert: int,
+                 *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # add perturbation encoder
+        # variables are defined in super class
+        d_model = self.d_model
+        self.pert_pad_id = kwargs.get("pert_pad_id") if "pert_pad_id" in kwargs else 2
+        pert_pad_id = self.pert_pad_id
+        self.pert_encoder = nn.Embedding(3, d_model, padding_idx=pert_pad_id)
+
+        # the following is the perturbation decoder
+        #n_pert = kwargs.get("n_perturb") if "n_perturb" in kwargs else 1
+        #nlayers_pert = kwargs.get("nlayers_perturb") if "nlayers_perturb" in kwargs else 3
+        self.pert_decoder = PerterbationDecoder(d_model, n_pert, nlayers=nlayers_pert)
+
+        # added: batch2 encoder, especially to model different cellular systems like cell line vs primary cells
+        self.batch2_pad_id = None #kwargs.get("batch2_pad_id") if "batch2_pad_id" in kwargs else 2
+        #self.batch2_encoder = nn.Embedding(2, d_model, padding_idx=self.batch2_pad_id)
+        self.batch2_encoder = Batch2LabelEncoder(2, d_model)
+        self.n_pert = n_pert
+        self.n_cls = kwargs.get("n_cls") if "n_cls" in kwargs else 1
+
+    # rewrite encode function
+    def _encode(
+        self,
+        src: Tensor,
+        values: Tensor,
+        src_key_padding_mask: Tensor,
+        batch_labels: Optional[Tensor] = None,  # (batch,)
+        input_pert_flags: Optional[Tensor] = None,
+    ) -> Tensor:
+        #print('_encode batch labels:')
+        #print(batch_labels)
+        self._check_batch_labels(batch_labels)
+
+        src = self.encoder(src)  # (batch, seq_len, embsize)
+        self.cur_gene_token_embs = src
+
+        values = self.value_encoder(values)  # (batch, seq_len, embsize)
+
+        if self.input_emb_style == "scaling":
+            values = values.unsqueeze(2)
+            total_embs = src * values
+        else:
+            total_embs = src + values
+
+        # add additional perturbs
+        if input_pert_flags is not None:
+            perts = self.pert_encoder(input_pert_flags)  # (batch, seq_len, embsize)
+            total_embs = total_embs + perts
+
+        # batch2 TODO: use batch_encoder instead
+        if batch_labels is not None:
+            batch2_embs = self.batch2_encoder(batch_labels)
+            #import pdb; pdb.set_trace()
+            batch2_embs = batch2_embs.unsqueeze(1).repeat(1, total_embs.shape[1], 1)
+            total_embs = total_embs + batch2_embs
+
+        # dsbn and batch normalization
+        if getattr(self, "dsbn", None) is not None:
+            batch_label = int(batch_labels[0].item())
+            total_embs = self.dsbn(total_embs.permute(0, 2, 1), batch_label).permute(
+                0, 2, 1
+            )  # the batch norm always works on dim 1
+        elif getattr(self, "bn", None) is not None:
+            total_embs = self.bn(total_embs.permute(0, 2, 1)).permute(0, 2, 1)
+
+
+        output = self.transformer_encoder(
+            total_embs, src_key_padding_mask=src_key_padding_mask
+        )
+        return output  # (batch, seq_len, embsize)
+
+    def forward(
+        self,
+        src: Tensor,
+        values: Tensor,
+        src_key_padding_mask: Tensor,
+        batch_labels: Optional[Tensor] = None,
+        CLS: bool = False,
+        CCE: bool = False,
+        MVC: bool = False,
+        ECS: bool = False,
+        PERTPRED: bool = False,
+        do_sample: bool = False,
+    ) -> Mapping[str, Tensor]:
+        """
+        Args:
+            src (:obj:`Tensor`): token ids, shape [batch_size, seq_len]
+            values (:obj:`Tensor`): token values, shape [batch_size, seq_len]
+            src_key_padding_mask (:obj:`Tensor`): mask for src, shape [batch_size,
+                seq_len]
+            batch_labels (:obj:`Tensor`): batch labels, shape [batch_size]
+            CLS (:obj:`bool`): if True, return the celltype classification objective
+                (CLS) output
+            CCE (:obj:`bool`): if True, return the contrastive cell embedding objective
+                (CCE) output
+            MVC (:obj:`bool`): if True, return the masked value prediction for cell
+                embedding MVC output
+            ECS (:obj:`bool`): if True, return the elastic cell similarity objective
+                (ECS) output.
+            PERTPRED (:obj:`bool`): if True, return the perturbation prediction objective
+                (PERTPRED) output. Added here
+
+        Returns:
+            dict of output Tensors.
+        """
+        #print('forward batch labels:')
+        #print(batch_labels)
+        output = super().forward(
+            src,
+            values,
+            src_key_padding_mask,
+            batch_labels=batch_labels,
+            CLS=CLS,
+            CCE=CCE,
+            MVC=MVC,
+            ECS=ECS,
+            do_sample=do_sample,
+        )
+        # get cell embedding
+        if PERTPRED:
+            cell_emb = output["cell_emb"]
+            output["pert_output"] = self.pert_decoder(cell_emb)  # (batch, n_cls)
+
+        return output
+
+    def encode_batch_with_perturb(
+        self,
+        src: Tensor,
+        values: Tensor,
+        src_key_padding_mask: Tensor,
+        batch_size: int,
+        batch_labels: Optional[Tensor] = None,
+        output_to_cpu: bool = True,
+        time_step: Optional[int] = None,
+        return_np: bool = False,
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        """
+        revised scgpt.TransformerModel.encode_batch but with additional perturbation
+        prediction output
+        Args:
+            src (Tensor): shape [N, seq_len]
+            values (Tensor): shape [N, seq_len]
+            src_key_padding_mask (Tensor): shape [N, seq_len]
+            batch_size (int): batch size for encoding
+            batch_labels (Tensor): shape [N, n_batch_labels]
+            output_to_cpu (bool): whether to move the output to cpu
+            time_step (int): the time step index in the transformer output to return.
+                The time step is along the second dimenstion. If None, return all.
+            return_np (bool): whether to return numpy array
+
+        Returns:
+            output Tensor tuple of shape [N, seq_len, embsize] and [N, n_pert]
+        """
+        N = src.size(0)
+        device = next(self.parameters()).device
+
+        # initialize the output tensor
+        array_func = np.zeros if return_np else torch.zeros
+        float32_ = np.float32 if return_np else torch.float32
+        shape = (
+            (N, self.d_model)
+            if time_step is not None
+            else (N, src.size(1), self.d_model)
+        )
+        outputs = array_func(shape, dtype=float32_)
+
+        # added for perturbation predictions
+        shape_perts = (N, self.n_pert) if time_step is not None else (N, src.size(1), self.n_pert)
+        pert_outputs = array_func(shape_perts, dtype=float32_)
+
+        # add for cls predictions
+        shape_cls = (N, self.n_cls) if time_step is not None else (N, src.size(1), self.n_cls)
+        cls_outputs = array_func(shape_cls, dtype=float32_)
+
+        for i in trange(0, N, batch_size):
+            src_d = src[i : i + batch_size].to(device)
+            values_d = values[i : i + batch_size].to(device)
+            src_key_padding_mask_d = src_key_padding_mask[i : i + batch_size].to(device)
+            batch_labels_d = batch_labels[i : i + batch_size].to(device) if batch_labels is not None else None
+            raw_output = self._encode(
+                src_d,
+                values_d,
+                src_key_padding_mask_d,
+                batch_labels_d,
+            )
+            output = raw_output.detach()
+            if output_to_cpu:
+                output = output.cpu()
+            if return_np:
+                output = output.numpy()
+            if time_step is not None:
+                output = output[:, time_step, :]
+            outputs[i : i + batch_size] = output
+
+            #import pdb; pdb.set_trace()
+            cell_emb = self._get_cell_emb_from_layer(raw_output, values_d)
+            pert_output = self.pert_decoder(cell_emb)
+            if output_to_cpu:
+                pert_output = pert_output.cpu()
+            if return_np:
+                pert_output = pert_output.numpy()
+            #if time_step is not None:
+            #    pert_output = pert_output[:, time_step, :]
+            pert_outputs[i : i + batch_size] = pert_output
+
+            cls_output = self.cls_decoder(cell_emb)
+            if output_to_cpu:
+                cls_output = cls_output.cpu()
+            if return_np:
+                cls_output = cls_output.numpy()
+            cls_outputs[i : i + batch_size] = cls_output
+
+        return outputs, pert_outputs, cls_outputs
+
