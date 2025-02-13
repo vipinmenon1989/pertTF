@@ -1,10 +1,96 @@
 from typing import List, Tuple, Dict, Union, Optional
-
+import random
 import torch
+import numpy as np
 from torch import nn, Tensor
-
 from torch.utils.data import Dataset, DataLoader
 
+from scipy.sparse import issparse
+
+from anndata import AnnData
+from sklearn.model_selection import train_test_split
+
+from torchtext.vocab import Vocab
+from torchtext._torchtext import (
+    Vocab as VocabPybind,
+)
+
+from scgpt.tokenizer import tokenize_and_pad_batch, random_mask_value
+from scgpt import SubsetsBatchSampler
+
+def add_pred_layer(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
+    """
+    format controls the different input value wrapping, including categorical
+    binned style, fixed-sum normalized counts, log1p fixed-sum normalized counts, etc.
+
+    Args:
+
+    adata (:class:`AnnData`):
+        The :class:`AnnData` object to preprocess.
+    binned_layer_key (:class:`str`, optional):
+        The key of :class:`AnnData.obs` to use for expression layer. Default is the binned expression layer.
+    next_layer_key (:class:`str`, optional):
+        The key of :class:`AnnData.obs` to use for next-stage expression layer. Default is the binned expression layer.
+    """
+
+    # right now, just a duplicate of input layers
+    input_layers=adata.layers[binned_layer_key].copy()
+    return input_layers
+
+    n_bin_pseudotome=5 # split pseudotime bins
+
+    obsf=adata.obs
+    import pandas as pd
+    obsf['pseudotime_bin'] = pd.cut(obsf['palantir_pseudotime'], bins=np.linspace(0, 1, num=n_bin_pseudotome), labels=False) # split [0,1] into n bins and calculate bin number for palantir_pseudotime column
+
+    p_prob=adata.obsm['palantir_fate_probabilities']
+    n_diff_cell_types=p_prob.shape[1]
+    p_prob['max_index'] = np.argmax(p_prob.values, axis=1) # find the index with the largest value for each row
+
+    obsf_2=obsf[['palantir_pseudotime','palantir_entropy','pseudotime_bin']].join(p_prob)
+
+    target_cell_id=[]
+    is_valid_next=[]
+    n_no_next = 0
+    for this_cell in obsf_2.index.values:
+        t_ps_bin=obsf_2['pseudotime_bin'].loc[this_cell]
+        t_max_index=obsf_2['max_index'].loc[this_cell]
+        t_entrophy=obsf_2['palantir_entropy'].loc[this_cell]
+        cell_pool=[]
+        if t_ps_bin == 0: # pseudo-time =0; can be any cell in the next bin
+            # cell_pool=obsf_2.index.values[obsf_2['pseudotime_bin'] == t_ps_bin+1 & (obsf_2['palantir_entropy'] < t_entrophy) ]
+            cell_pool=obsf_2.index.values[obsf_2['pseudotime_bin'] == t_ps_bin+1  ]  # do not use entrophy
+        elif t_ps_bin == n_bin_pseudotome - 2: # pseudo-time =last bin; can be any cell in the current bin with the same fate
+            #cell_pool=obsf_2.index.values[ (obsf_2['pseudotime_bin'] == t_ps_bin) & (obsf_2['max_index']==t_max_index) & (obsf_2['palantir_entropy'] < t_entrophy)]
+            cell_pool=obsf_2.index.values[ (obsf_2['pseudotime_bin'] == t_ps_bin) & (obsf_2['max_index']==t_max_index) ]
+        else:
+            #cell_pool=obsf_2.index.values[ (obsf_2['pseudotime_bin'] == t_ps_bin+1) & (obsf_2['max_index']==t_max_index) & (obsf_2['palantir_entropy'] < t_entrophy)]
+            cell_pool=obsf_2.index.values[ (obsf_2['pseudotime_bin'] == t_ps_bin+1) & (obsf_2['max_index']==t_max_index)]
+        if len(cell_pool) > 0:
+            target_cell_id.append(random.choice(cell_pool))
+            is_valid_next.append(True)
+        else:
+            target_cell_id.append(this_cell)
+            n_no_next = n_no_next + 1
+            is_valid_next.append(False)
+
+    adata.obs['next_cell_id'] = target_cell_id
+    adata.obs['is_valid_next'] = is_valid_next
+
+    input_layers=adata.layers[binned_layer_key].copy()
+    target_cell_id_index=obsf_2.index.get_indexer(target_cell_id)
+    target_layers=input_layers[target_cell_id_index]
+
+    #adata.layers[next_layer_key]=target_layers
+
+
+    return target_layers
+
+
+def add_pred_layer(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
+    """
+    Just a duplicate of input layers
+    """
 
 
 
@@ -354,6 +440,7 @@ class SeqDataset(Dataset):
 def prepare_dataloader(
     data_pt: Dict[str, torch.Tensor],
     batch_size: int,
+    config,
     shuffle: bool = False,
     intra_domain_shuffle: bool = False,
     drop_last: bool = False,

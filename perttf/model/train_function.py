@@ -736,6 +736,7 @@ def wrapper_train(model, config, data_gen,
         train_loader = prepare_dataloader(
             train_data_pt,
             batch_size= config.batch_size,
+            config=config,
             shuffle=True, # False, # default false
             intra_domain_shuffle=True,
             drop_last=False,
@@ -743,6 +744,7 @@ def wrapper_train(model, config, data_gen,
         valid_loader = prepare_dataloader(
             valid_data_pt,
             batch_size=config.batch_size,
+            config=config,
             shuffle=False,
             intra_domain_shuffle=False,
             drop_last=False,
