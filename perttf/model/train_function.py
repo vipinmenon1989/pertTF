@@ -809,9 +809,9 @@ def wrapper_train(model, config, data_gen,
                 for res_key, res_img_val in results.items():
                     if res_key in save_image_types:
                         res_img_val.savefig(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png", dpi=300,bbox_inches='tight')
-                        metrics_to_log[f"test/{res_key}"] = wandb.Image(
+                        metrics_to_log[f"test/{eval_dict_key}_{res_key}"] = wandb.Image(
                             str(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png"),
-                            caption=f"{res_key} epoch {epoch}",
+                            caption=f"{eval_dict_key}_{res_key} epoch {epoch}",
                         )
                 if "adata" in results:
                     results["adata"].write_h5ad(save_dir / f'adata_last_validation_{eval_dict_key}.h5ad')
