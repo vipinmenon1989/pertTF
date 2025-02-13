@@ -796,6 +796,7 @@ def wrapper_train(model, config, data_gen,
                     config=config,
                     include_types=["cls"],
                     logger=logger,
+                    epoch=epoch
                 )
 
                 metrics_to_log = {"test/" + k: v for k, v in results.items() if k != "adata"}
