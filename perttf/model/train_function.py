@@ -1,17 +1,42 @@
-from torch import nn, Tensor
-from torch.utils.data import Dataset, DataLoader
+import time
+import torch
+import random
+import warnings
+from pathlib import Path
+import copy
+import numpy as np
+
 from typing import Dict, Mapping, Optional, Tuple, Any, Union
 from typing import List, Tuple   
 
-from anndata import AnnData
+from torch import nn, Tensor
+from torch.utils.data import Dataset, DataLoader
 
+from anndata import AnnData
+import scanpy as sc
+
+import wandb
+from scipy.sparse import issparse
+
+import scgpt as scg
+from scgpt.loss import (
+    masked_mse_loss,
+    masked_relative_error,
+    criterion_neg_log_bernoulli,
+)
+from scgpt.tokenizer import tokenize_and_pad_batch, random_mask_value
+from scgpt.model import TransformerModel, AdversarialDiscriminator
+
+from perttf.model.train_data_gen import prepare_data,prepare_dataloader
 
 def train(model: nn.Module,
           loader: DataLoader,
           config,
+          vocab,
           optim_dict: Dict,
           epoch = 0,
-          logger = None) -> None:
+          logger = None,
+          device = None) -> None:
     """
     Train the model for one epoch.
     """
@@ -20,6 +45,9 @@ def train(model: nn.Module,
     criterion_cls = nn.CrossEntropyLoss()
     criterion_pert = nn.CrossEntropyLoss()
     criterion_adv = nn.CrossEntropyLoss()  # consider using label smoothing
+
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model.train()
     total_loss, total_mse, total_gepc = 0.0, 0.0, 0.0
@@ -270,8 +298,12 @@ def define_wandb_metrcis():
     wandb.define_metric("test/avg_bio", summary="max")
 
 
-def evaluate(model: nn.Module, loader: DataLoader, config,
-             epoch = 0) -> float:
+def evaluate(model: nn.Module, 
+            loader: DataLoader, 
+            config,
+            vocab,
+            epoch = 0,
+            device = None) -> float:
     """
     Evaluate the model on the evaluation data.
     """
@@ -280,6 +312,10 @@ def evaluate(model: nn.Module, loader: DataLoader, config,
     criterion_cls = nn.CrossEntropyLoss()
     criterion_pert = nn.CrossEntropyLoss()
     criterion_adv = nn.CrossEntropyLoss()  # consider using label smoothing
+
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
     model.eval()
     total_loss = 0.0
@@ -381,6 +417,7 @@ def eval_testdata(
     # copy adata_t to avoid reuse previously computed results stored in adata_t
     cell_type_to_index = train_data_dict["cell_type_to_index"]
     genotype_to_index = train_data_dict["genotype_to_index"]
+    vocab=train_data_dict['vocab']
 
     adata_t = adata_t[adata_t.obs['celltype'].isin(cell_type_to_index)]
 
@@ -401,7 +438,7 @@ def eval_testdata(
     if "celltype" in adata_t.obs.columns and config.cell_type_classifier:
         celltypes_labels = adata_t.obs["celltype"].tolist()  # make sure count from 0
     else:
-        celltypes_labels = random.choices( [0,1], k=adata.shape[0])
+        celltypes_labels = random.choices( [0,1], k=adata_t.shape[0])
 
     celltypes_labels = np.array(celltypes_labels)
     celltypes_indexes = np.array([cell_type_to_index[cell_type] for cell_type in celltypes_labels])
@@ -409,7 +446,7 @@ def eval_testdata(
     if "genotype" in adata_t.obs.columns and config.perturbation_classifier_weight > 0:
         perturbation_labels = adata_t.obs["genotype"].tolist()  # make sure count from 0
     else:
-        perturbation_labels = random.choices( [0,1], k=adata.shape[0])
+        perturbation_labels = random.choices( [0,1], k=adata_t.shape[0])
 
     perturbation_labels = np.array(perturbation_labels)
     perturbation_indexes = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels])
@@ -417,7 +454,7 @@ def eval_testdata(
     if "batch_id" in adata_t.obs.columns: # and config.DSBN:
         batch_ids = adata_t.obs["batch_id"].tolist()
     else:
-        batch_ids=random.choices( [0,1], k=adata.shape[0])
+        batch_ids=random.choices( [0,1], k=adata_t.shape[0])
 
     batch_ids = np.array(batch_ids)
 
@@ -614,13 +651,18 @@ def eval_testdata(
 
 def wrapper_train(model, config, data_gen,
                   logger = None,
-                  save_dir = None):
+                  save_dir = None,
+                  device = None):
+
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     scaler = torch.cuda.amp.GradScaler(enabled=config.amp)
 
     DAB_separate_optim = True if config.dab_weight >0 else False
 
     num_batch_types = data_gen['num_batch_types']
+    vocab = data_gen['vocab']
 
     if config.ADV:
         discriminator = AdversarialDiscriminator(
@@ -711,6 +753,7 @@ def wrapper_train(model, config, data_gen,
                 model,
                 train_loader,
                 config,
+                vocab,
                 optimizer_dict,
                 epoch = epoch,
                 logger = logger,
@@ -719,6 +762,7 @@ def wrapper_train(model, config, data_gen,
             model,
             loader=valid_loader,
             config=config,
+            vocab = vocab,
             epoch = epoch,
         )
         elapsed = time.time() - epoch_start_time

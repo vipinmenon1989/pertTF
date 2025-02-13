@@ -3,6 +3,8 @@ from typing import Dict, Mapping, Optional, Tuple, Any, Union
 #from scgpt.model import BatchLabelEncoder
 from tqdm import trange
 
+import numpy as np
+
 import torch
 from torch import nn
 
