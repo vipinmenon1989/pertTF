@@ -411,6 +411,7 @@ def eval_testdata(
     next_layer_key = "X_binned_next",
     logger = scg.logger,
     epoch = 0,
+    eval_key = "", # titles for evaluation
 ) -> Optional[Dict]:
     """evaluate the model on test dataset of adata_t"""
     model.eval()
@@ -563,7 +564,7 @@ def eval_testdata(
             fig = sc.pl.umap(
                 adata_t,
                 color=["batch"],
-                title=[f"batch, e{epoch}"],
+                title=[f"{eval_key} batch, e{epoch}"],
                 frameon=False,
                 return_fig=True,
                 show=False,
@@ -579,7 +580,7 @@ def eval_testdata(
                 adata_t,
                 color=["celltype"],
                 title=[
-                    f"celltype, e{epoch}",
+                    f"{eval_key} celltype, e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -592,7 +593,7 @@ def eval_testdata(
                 adata_t,
                 color=["genotype"],
                 title=[
-                    f"genotype, e{epoch}",
+                    f"{eval_key} genotype, e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -603,7 +604,7 @@ def eval_testdata(
                 adata_t,
                 color=["genotype"],
                 title=[
-                    f"genotype e{epoch}",
+                    f"{eval_key} genotype e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -616,7 +617,7 @@ def eval_testdata(
                 adata_t,
                 color=["predicted_genotype"],
                 title=[
-                    f"pred genotype, with different color e{epoch}",
+                    f"{eval_key} pred genotype, with different color e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -629,7 +630,7 @@ def eval_testdata(
                 adata_t,
                 color=["predicted_celltype"],
                 title=[
-                    f"pred celltype, e{epoch}",
+                    f"{eval_key} pred celltype, e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -796,7 +797,8 @@ def wrapper_train(model, config, data_gen,
                     config=config,
                     include_types=["cls"],
                     logger=logger,
-                    epoch=epoch
+                    epoch=epoch,
+                    eval_key=eval_dict_key,
                 )
 
                 metrics_to_log = {"test/" + k: v for k, v in results.items() if k != "adata"}
