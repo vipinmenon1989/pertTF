@@ -410,6 +410,7 @@ def eval_testdata(
     input_layer_key = "X_binned",
     next_layer_key = "X_binned_next",
     logger = scg.logger,
+    epoch = 0,
 ) -> Optional[Dict]:
     """evaluate the model on test dataset of adata_t"""
     model.eval()
@@ -557,21 +558,12 @@ def eval_testdata(
 
         sc.pp.neighbors(adata_t, use_rep="X_scGPT")
         sc.tl.umap(adata_t, min_dist=0.3)
-        #fig = sc.pl.umap(
-        #    adata_t,
-        #    #color=["celltype"],
-        #    #title=[f"celltype, avg_bio = {results.get('avg_bio', 0.0):.4f}"],
-        #    frameon=False,
-        #    return_fig=True,
-        #    show=False,
-        #)
-        #results["umap"] = fig
 
         if "batch" in adata_t.obs:
             fig = sc.pl.umap(
                 adata_t,
                 color=["batch"],
-                title=[f"batch, avg_bio = {results.get('avg_bio', 0.0):.4f}"],
+                title=[f"batch, e{epoch}"],
                 frameon=False,
                 return_fig=True,
                 show=False,
@@ -587,7 +579,7 @@ def eval_testdata(
                 adata_t,
                 color=["celltype"],
                 title=[
-                    f"celltype, avg_bio = {results.get('avg_bio', 0.0):.4f}",
+                    f"celltype, e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -600,7 +592,7 @@ def eval_testdata(
                 adata_t,
                 color=["genotype"],
                 title=[
-                    f"genotype, avg_bio = {results.get('avg_bio', 0.0):.4f}",
+                    f"genotype, e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -611,7 +603,7 @@ def eval_testdata(
                 adata_t,
                 color=["genotype"],
                 title=[
-                    f"genotype, with different color",
+                    f"genotype e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -624,7 +616,7 @@ def eval_testdata(
                 adata_t,
                 color=["predicted_genotype"],
                 title=[
-                    f"pred genotype, with different color",
+                    f"pred genotype, with different color e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
@@ -637,7 +629,7 @@ def eval_testdata(
                 adata_t,
                 color=["predicted_celltype"],
                 title=[
-                    f"pred celltype, with different color",
+                    f"pred celltype, e{epoch}",
                 ],
                 frameon=False,
                 return_fig=True,
