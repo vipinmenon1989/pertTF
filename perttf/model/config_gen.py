@@ -1,6 +1,9 @@
 import os
 import sys
 import wandb
+
+from scgpt.utils import set_seed
+
 # Check the Python interpreter being used
 #print(sys.executable)
 
