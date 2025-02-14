@@ -787,6 +787,7 @@ def wrapper_train(model, config, data_gen,
             torch.save(best_model.state_dict(), save_dir / f"model_e{best_model_epoch}.pt")
 
             # eval on testdata
+            metrics_to_log={}
             for eval_dict_key, eval_adata in eval_adata_dict.items():
                 results = eval_testdata(
                     #best_model,
@@ -801,7 +802,7 @@ def wrapper_train(model, config, data_gen,
                     eval_key=eval_dict_key,
                 )
 
-                metrics_to_log = {"test/" + k: v for k, v in results.items() if k != "adata"}
+                # metrics_to_log = {"test/" + k: v for k, v in results.items() if k != "adata"}
                 #if "umap" in results:
                 #    results["umap"].savefig(save_dir / f"embeddings_umap[cls]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
 
@@ -821,7 +822,7 @@ def wrapper_train(model, config, data_gen,
 
             metrics_to_log["test/best_model_epoch"] = best_model_epoch
             wandb.log(metrics_to_log)
-            wandb.log({"avg_bio": results.get("avg_bio", 0.0)})
+            # wandb.log({"avg_bio": results.get("avg_bio", 0.0)})
 
         scheduler.step()
 
