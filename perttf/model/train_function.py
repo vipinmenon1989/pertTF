@@ -831,7 +831,17 @@ def wrapper_train(model, config, data_gen,
         if config.ADV:
             scheduler_D.step()
             scheduler_E.step()
-
+    
+    # save the best model
+    torch.save(best_model.state_dict(), save_dir / "best_model.pt")
+    torch.save(vocab, save_dir / "vocab.pt")
+    running_parameters={
+     'cell_type_to_index': data_gen["cell_type_to_index"],
+     'genotype_to_index': data_gen["genotype_to_index"],
+     'genes': data_gen["genes"], # genes,
+     'gene_ids': data_gen["gene_ids"] # gene_ids,
+    }
+    torch.save(running_parameters, save_dir / "running_parameters.pt")
     return best_model
 
 
