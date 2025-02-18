@@ -7,6 +7,12 @@ import numpy as np
 
 import torch
 from torch import nn
+from torch.distributions import Bernoulli
+import torch.nn.functional as F
+
+import torch.distributed as dist
+
+
 
 import scgpt as scg
 from scgpt.model import TransformerModel
@@ -147,6 +153,7 @@ class PerturbationTFModel(TransformerModel):
         values: Tensor,
         src_key_padding_mask: Tensor,
         batch_labels: Optional[Tensor] = None,
+        pert_labels: Optional[Tensor] = None, 
         CLS: bool = False,
         CCE: bool = False,
         MVC: bool = False,
@@ -177,17 +184,117 @@ class PerturbationTFModel(TransformerModel):
         """
         #print('forward batch labels:')
         #print(batch_labels)
-        output = super().forward(
-            src,
-            values,
-            src_key_padding_mask,
-            batch_labels=batch_labels,
-            CLS=CLS,
-            CCE=CCE,
-            MVC=MVC,
-            ECS=ECS,
-            do_sample=do_sample,
+        # call the super forward function
+        #output = super().forward(
+        #    src,
+        #    values,
+        #    src_key_padding_mask,
+        #    batch_labels=batch_labels,
+        #    CLS=CLS,
+        #    CCE=CCE,
+        #    MVC=MVC,
+        #    ECS=ECS,
+        #    do_sample=do_sample,
+        #)
+
+        # or, rewrite the forward function
+        transformer_output = self._encode(
+            src, values, src_key_padding_mask, batch_labels,
+            input_pert_flags= pert_labels,
         )
+        if self.use_batch_labels:
+            batch_emb = self.batch_encoder(batch_labels)  # (batch, embsize)
+
+        output = {}
+        mlm_output = self.decoder(
+            transformer_output
+            if not self.use_batch_labels
+            else torch.cat(
+                [
+                    transformer_output,
+                    batch_emb.unsqueeze(1).repeat(1, transformer_output.shape[1], 1),
+                ],
+                dim=2,
+            ),
+            # else transformer_output + batch_emb.unsqueeze(1),
+        )
+        if self.explicit_zero_prob and do_sample:
+            bernoulli = Bernoulli(probs=mlm_output["zero_probs"])
+            output["mlm_output"] = bernoulli.sample() * mlm_output["pred"]
+        else:
+            output["mlm_output"] = mlm_output["pred"]  # (batch, seq_len)
+        if self.explicit_zero_prob:
+            output["mlm_zero_probs"] = mlm_output["zero_probs"]
+
+        cell_emb = self._get_cell_emb_from_layer(transformer_output, values)
+        output["cell_emb"] = cell_emb
+
+        if CLS:
+            output["cls_output"] = self.cls_decoder(cell_emb)  # (batch, n_cls)
+        if CCE:
+            cell1 = cell_emb
+            transformer_output2 = self._encode(
+                src, values, src_key_padding_mask, batch_labels
+            )
+            cell2 = self._get_cell_emb_from_layer(transformer_output2)
+
+            # Gather embeddings from all devices if distributed training
+            if dist.is_initialized() and self.training:
+                cls1_list = [
+                    torch.zeros_like(cell1) for _ in range(dist.get_world_size())
+                ]
+                cls2_list = [
+                    torch.zeros_like(cell2) for _ in range(dist.get_world_size())
+                ]
+                dist.all_gather(tensor_list=cls1_list, tensor=cell1.contiguous())
+                dist.all_gather(tensor_list=cls2_list, tensor=cell2.contiguous())
+
+                # NOTE: all_gather results have no gradients, so replace the item
+                # of the current rank with the original tensor to keep gradients.
+                # See https://github.com/princeton-nlp/SimCSE/blob/main/simcse/models.py#L186
+                cls1_list[dist.get_rank()] = cell1
+                cls2_list[dist.get_rank()] = cell2
+
+                cell1 = torch.cat(cls1_list, dim=0)
+                cell2 = torch.cat(cls2_list, dim=0)
+            # TODO: should detach the second run cls2? Can have a try
+            cos_sim = self.sim(cell1.unsqueeze(1), cell2.unsqueeze(0))  # (batch, batch)
+            labels = torch.arange(cos_sim.size(0)).long().to(cell1.device)
+            output["loss_cce"] = self.creterion_cce(cos_sim, labels)
+        if MVC:
+            mvc_output = self.mvc_decoder(
+                cell_emb
+                if not self.use_batch_labels
+                else torch.cat([cell_emb, batch_emb], dim=1),
+                # else cell_emb + batch_emb,
+                self.cur_gene_token_embs,
+            )
+            if self.explicit_zero_prob and do_sample:
+                bernoulli = Bernoulli(probs=mvc_output["zero_probs"])
+                output["mvc_output"] = bernoulli.sample() * mvc_output["pred"]
+            else:
+                output["mvc_output"] = mvc_output["pred"]  # (batch, seq_len)
+            if self.explicit_zero_prob:
+                output["mvc_zero_probs"] = mvc_output["zero_probs"]
+        if ECS:
+            # Here using customized cosine similarity instead of F.cosine_similarity
+            # to avoid the pytorch issue of similarity larger than 1.0, pytorch # 78064
+            # normalize the embedding
+            cell_emb_normed = F.normalize(cell_emb, p=2, dim=1)
+            cos_sim = torch.mm(cell_emb_normed, cell_emb_normed.t())  # (batch, batch)
+
+            # mask out diagnal elements
+            mask = torch.eye(cos_sim.size(0)).bool().to(cos_sim.device)
+            cos_sim = cos_sim.masked_fill(mask, 0.0)
+            # only optimize positive similarities
+            cos_sim = F.relu(cos_sim)
+
+            output["loss_ecs"] = torch.mean(1 - (cos_sim - self.ecs_threshold) ** 2)
+
+        if self.do_dab:
+            output["dab_output"] = self.grad_reverse_discriminator(cell_emb)
+
+
         # get cell embedding
         if PERTPRED:
             cell_emb = output["cell_emb"]
