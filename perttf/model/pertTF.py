@@ -70,6 +70,24 @@ class Batch2LabelEncoder(nn.Module):
         return x
 
 
+class PertLabelEncoder(nn.Module):
+    def __init__(
+        self,
+        num_embeddings: int,
+        embedding_dim: int,
+        padding_idx: Optional[int] = None,
+    ):
+        super().__init__()
+        self.embedding = nn.Embedding(
+            num_embeddings, embedding_dim, padding_idx=padding_idx
+        )
+        self.enc_norm = nn.LayerNorm(embedding_dim)
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.embedding(x)  # (batch, embsize)
+        x = self.enc_norm(x)
+        return x
+
 
 class PerturbationTFModel(TransformerModel):
     def __init__(self,
@@ -83,7 +101,7 @@ class PerturbationTFModel(TransformerModel):
         self.pert_pad_id = kwargs.get("pert_pad_id") if "pert_pad_id" in kwargs else 2
         pert_pad_id = self.pert_pad_id
         #self.pert_encoder = nn.Embedding(3, d_model, padding_idx=pert_pad_id)
-        self.pert_encoder = Batch2LabelEncoder(n_pert, d_model, padding_idx=pert_pad_id)
+        self.pert_encoder = PertLabelEncoder(n_pert, d_model, padding_idx=pert_pad_id)
 
         # the following is the perturbation decoder
         #n_pert = kwargs.get("n_perturb") if "n_perturb" in kwargs else 1
