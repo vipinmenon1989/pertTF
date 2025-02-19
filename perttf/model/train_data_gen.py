@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Union, Optional
+from typing import List, Tuple, Dict, Union, Optional, Literal
 import random
 import torch
 import numpy as np
@@ -19,7 +19,66 @@ import scgpt as scg
 from scgpt.tokenizer import tokenize_and_pad_batch, random_mask_value
 from scgpt import SubsetsBatchSampler
 
-def add_pred_layer(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
+def add_pred_layer(adata: AnnData, 
+        binned_layer_key: Optional[str] = 'X_binned', 
+        next_layer_key: Optional[str] = 'X_binned_next',
+        next_cell_pred: Literal["identity","pert"] = "identity") -> Dict:
+    """
+    format controls the different input value wrapping, including categorical
+    binned style, fixed-sum normalized counts, log1p fixed-sum normalized counts, etc.
+
+    Args:
+
+    adata (:class:`AnnData`):
+        The :class:`AnnData` object to preprocess.
+    binned_layer_key (:class:`str`, optional):
+        The key of :class:`AnnData.obs` to use for expression layer. Default is the binned expression layer.
+    next_layer_key (:class:`str`, optional):
+        The key of :class:`AnnData.obs` to use for next-stage expression layer. Default is the binned expression layer.
+    copy_data (:class:`bool`, optional):
+        Whether to directly copy the data
+    """
+    # right now, just a duplicate of input layers
+    if next_cell_pred == "identity":
+        input_layers=adata.layers[binned_layer_key].copy()
+        return input_layers,adata
+    # store the data
+
+    obsf=adata.obs
+    next_cell_dict = {}
+    genotype_pool = list(set(obsf['genotype']))
+    for candidate_celltype in set(obsf['celltype']):
+        next_cell_dict[candidate_celltype] = {}
+        for candidate_genotype in set(obsf['genotype']):
+            obsf_sel = obsf[(obsf['celltype']==candidate_celltype) & (obsf['genotype']==candidate_genotype)]
+            included_cells = obsf_sel.index.to_list()
+            if len(included_cells) > 0:
+                next_cell_dict[candidate_celltype][candidate_genotype] = included_cells
+
+    adata_p = adata[adata.obs['genotype']=='WT']
+
+    target_pert=[]
+    target_cell_id=[]
+
+    for this_cell in adata_p.obs.index.values:
+        this_cell_type = adata_p.obs.loc[this_cell]['celltype']
+        next_pert_value=random.choice(list(next_cell_dict[this_cell_type].keys()))
+        target_pert.append(next_pert_value)
+        next_cell = random.choice(next_cell_dict[this_cell_type][next_pert_value])
+        target_cell_id.append(next_cell)
+
+    adata_p.obs['genotype'] = target_pert
+    adata_p.obs['next_cell_id'] = target_cell_id
+
+    input_layers=adata.layers[binned_layer_key].copy()
+
+    target_cell_id_index=obsf.index.get_indexer(target_cell_id)
+    target_layers=input_layers[target_cell_id_index]
+
+    return target_layers,adata_p
+
+
+def add_pred_layer_old(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
     """
     format controls the different input value wrapping, including categorical
     binned style, fixed-sum normalized counts, log1p fixed-sum normalized counts, etc.
@@ -36,7 +95,7 @@ def add_pred_layer(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned',
 
     # right now, just a duplicate of input layers
     input_layers=adata.layers[binned_layer_key].copy()
-    return input_layers
+    return input_layers,adata
 
     n_bin_pseudotome=5 # split pseudotime bins
 
@@ -91,82 +150,119 @@ def add_pred_layer(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned',
 
 
 
-def produce_training_datasets(adata, config,
+def produce_training_datasets(adata_input, config,
                               input_layer_key = "X_binned",
                               next_layer_key = "X_binned_next",
+                              next_cell_pred: Literal["identity","pert"] = "identity",
                               cell_type_to_index = None,
                               genotype_to_index = None,
                               logger = scg.logger):
     # add necessary columns to adata
-    adata.var["gene_name"] = adata.var.index.tolist()
+    adata_input.var["gene_name"] = adata_input.var.index.tolist()
 
     # set up these random values such that they don't get errors later on during training
-    adata.obs["str_batch"] = adata.obs["batch"]
-    adata.obs["str_batch"] = adata.obs["str_batch"].astype(str)
-    adata.obs["batch_id"] = adata.obs["str_batch"].astype("category").cat.codes.values
+    adata_input.obs["str_batch"] = adata_input.obs["batch"]
+    adata_input.obs["str_batch"] = adata_input.obs["str_batch"].astype(str)
+    adata_input.obs["batch_id"] = adata_input.obs["str_batch"].astype("category").cat.codes.values
     #adata.obs["celltype"] = random.choices( [0,1], k=adata.shape[0])
     #adata.obs["celltype"] = adata.obs["celltype"].astype("category")
 
-    # add next layers
-    all_counts = (adata.layers[input_layer_key].A if issparse(adata.layers[input_layer_key]) else adata.layers[input_layer_key])
-
-    # predict the next state of a cell
-    next_counts = add_pred_layer(adata)
-    # or just duplicate the data
-    #next_counts = all_counts.copy()
-
-    adata.layers[next_layer_key]=next_counts
-    #next_counts = (adata.layers[next_layer_key].A if issparse(adata.layers[next_layer_key]) else adata.layers[next_layer_key])
-
-    genes = adata.var["gene_name"].tolist()
-
-    if "celltype" in adata.obs.columns and config.cell_type_classifier:
-        celltypes_labels = adata.obs["celltype"].tolist()  # make sure count from 0
-    else:
-        celltypes_labels = random.choices( [0,1], k=adata.shape[0])
-    #num_types = len(set(celltypes_labels))
-    celltypes_labels = np.array(celltypes_labels)
-
-    # prompt: number of unique values in celltypes_labels
-
-
-
-    if "genotype" in adata.obs.columns and config.perturbation_classifier_weight > 0:
-        perturbation_labels = adata.obs["genotype"].tolist()  # make sure count from 0
-    else:
-        perturbation_labels = random.choices( [0,1], k=adata.shape[0])
-    perturbation_labels = np.array(perturbation_labels)
-
-
-    if "batch_id" in adata.obs.columns: # and config.DSBN:
-        batch_ids = adata.obs["batch_id"].tolist()
-    else:
-        batch_ids=random.choices( [0,1], k=adata.shape[0])
-    num_batch_types = len(set(batch_ids))
-    batch_ids = np.array(batch_ids)
-
-    # generate cell type indexs and perturbation indexes
+    # further expand the next layer prediction
+    n_rounds = config.n_rounds if hasattr(config,"n_rounds") else 1
+    adata = None
+    genes = None
+    next_counts = None
+    all_counts = None
+    celltypes_labels = None 
+    perturbation_labels = None
+    batch_ids = None
+    num_batch_types = -1
+    celltypes_indexes = None
+    perturbation_indexes = None
+    batch_indexes = None
+    cell_ids = None
 
     if cell_type_to_index is None:
-        cell_type_to_index = {cell_type: index for index, cell_type in enumerate(set(celltypes_labels))}
-
-    celltypes_indexes = [cell_type_to_index[cell_type] for cell_type in celltypes_labels]
-    celltypes_indexes = np.array(celltypes_indexes)
-    # Now celltypes_indexes contains the numerical representation of cell types
-    #print(celltypes_indexes[:10]) # Example: print first 10 indexes
+        cell_type_to_index = {cell_type: index for index, cell_type in enumerate(set(adata_input.obs["celltype"].tolist()))}
 
     if genotype_to_index is None:
-        genotype_to_index = {genotype: index for index, genotype in enumerate(set(perturbation_labels))}
-    perturbation_indexes = [genotype_to_index[genotype] for genotype in perturbation_labels]
-    perturbation_indexes = np.array(perturbation_indexes)
-    #print(perturbation_indexes[:10])
+        genotype_to_index = {genotype: index for index, genotype in enumerate(set(adata_input.obs["genotype"].tolist()))}
+
+    n_cls = len(cell_type_to_index)
+    n_perturb = len(genotype_to_index)
+
+    for ni in range(n_rounds):
+        # predict the next state of a cell
+        next_counts_0,adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        all_counts_0 = (adata_0.layers[input_layer_key].A if issparse(adata_0.layers[input_layer_key]) else adata_0.layers[input_layer_key])
+
+        if "celltype" in adata_0.obs.columns:
+            celltypes_labels_0 = adata_0.obs["celltype"].tolist()  # make sure count from 0
+        else:
+            celltypes_labels_0 = random.choices( [0,1], k=adata_0.shape[0])
+        #num_types = len(set(celltypes_labels))
+        celltypes_labels_0 = np.array(celltypes_labels_0)
+
+        if "genotype" in adata_0.obs.columns:
+            perturbation_labels_0 = adata_0.obs["genotype"].tolist()  # make sure count from 0
+        else:
+            perturbation_labels_0 = random.choices( [0,1], k=adata_0.shape[0])
+        perturbation_labels_0 = np.array(perturbation_labels_0)
+
+        if "batch_id" in adata_0.obs.columns: # and config.DSBN:
+            batch_ids_0 = adata_0.obs["batch_id"].tolist()
+        else:
+            batch_ids_0=random.choices( [0,1], k=adata_0.shape[0])
+        batch_ids_0 = np.array(batch_ids_0)
+
+        # generate cell type indexs and perturbation indexes
+
+
+        celltypes_indexes_0 = [cell_type_to_index[cell_type] for cell_type in celltypes_labels_0]
+        celltypes_indexes_0 = np.array(celltypes_indexes_0)
+        # Now celltypes_indexes contains the numerical representation of cell types
+        #print(celltypes_indexes[:10]) # Example: print first 10 indexes
+
+        perturbation_indexes_0 = [genotype_to_index[genotype] for genotype in perturbation_labels_0]
+        perturbation_indexes_0 = np.array(perturbation_indexes_0)
+
+        if adata is None:
+            adata = adata_0.copy()
+            next_counts = next_counts_0
+            all_counts = all_counts_0
+            adata.layers[next_layer_key]=next_counts
+            genes = adata.var["gene_name"].tolist()
+            celltypes_labels = celltypes_labels_0
+            perturbation_labels = perturbation_labels_0
+            batch_ids = batch_ids_0
+            num_batch_types = len(set(batch_ids))
+            celltypes_indexes = celltypes_indexes_0
+            perturbation_indexes = perturbation_indexes_0
+            cell_ids = adata.obs.index.values
+
+        else:
+            next_counts = np.concatenate([next_counts, next_counts_0], axis=0)
+            all_counts = np.concatenate([all_counts, all_counts_0], axis=0)
+            celltypes_labels = np.concatenate([celltypes_labels, celltypes_labels_0], axis=0)
+            perturbation_labels = np.concatenate([perturbation_labels, perturbation_labels_0], axis=0)
+            batch_ids = np.concatenate([batch_ids, batch_ids_0], axis=0)
+            celltypes_indexes = np.concatenate([celltypes_indexes, celltypes_indexes_0], axis=0)
+            perturbation_indexes = np.concatenate([perturbation_indexes, perturbation_indexes_0], axis=0)
+            cell_ids = np.concatenate([cell_ids, adata_0.obs.index.values],axis=0)
+            
+            # add next layers
+
+        # or just duplicate the data
+        #next_counts = all_counts.copy()
+
+        #next_counts = (adata.layers[next_layer_key].A if issparse(adata.layers[next_layer_key]) else adata.layers[next_layer_key])
+
+        #print(perturbation_indexes[:10])
 
     #n_cls = len(set(celltypes_labels)) if config.cell_type_classifier else 1
     #n_cls
     #n_perturb = len(set(perturbation_labels)) if config.perturbation_classifier_weight > 0 else 1
 
-    n_cls = len(cell_type_to_index)
-    n_perturb = len(genotype_to_index)
     # now, split train and test data
     (
         train_data,
@@ -182,29 +278,27 @@ def produce_training_datasets(adata, config,
         cell_ids_train,
         cell_ids_valid
     ) = train_test_split(
-        all_counts, celltypes_indexes, perturbation_indexes, batch_ids, next_counts, adata.obs.index.values, test_size=0.1, shuffle=True
+        all_counts, celltypes_indexes, perturbation_indexes, batch_ids, next_counts, cell_ids, test_size=0.1, shuffle=True
     )
 
     adata.obs['is_in_training']=adata.obs.index.isin(cell_ids_train)
-
-    # further expand the next layer prediction
-    n_rounds = 0
-
     adata_small=adata[adata.obs['is_in_training']==True] # only consider training data
-    for ni in range(n_rounds):
-        print(f"round {ni}")
 
-        round_all_c = adata_small.layers[input_layer_key].copy()
-        round_next_c = add_pred_layer(adata_small)
+    #for ni in range(n_rounds):
+    #    print(f"round {ni}")
+    #    adata_input_slice=adata_input[adata_input.obs.index.isin(adata_small.obs.index.values)]
+    #    
+    #    round_next_c,adata_rets = add_pred_layer(adata_input_slice,next_cell_pred=next_cell_pred)
+    #
+    #    round_all_c = adata_small.layers[input_layer_key].copy()
+    #
+    #    train_data = np.concatenate([train_data, round_all_c], axis=0)
+    #    train_data_next = np.concatenate([train_data_next, round_next_c], axis=0)
 
-
-        train_data = np.concatenate([train_data, round_all_c], axis=0)
-        train_data_next = np.concatenate([train_data_next, round_next_c], axis=0)
-
-    train_celltype_labels = np.concatenate([train_celltype_labels] * (n_rounds+1))
-    train_perturbation_labels = np.concatenate([train_perturbation_labels] * (n_rounds+1))
-    train_batch_labels = np.concatenate([train_batch_labels] * (n_rounds+1))
-    cell_ids_train = np.concatenate([cell_ids_train] * (n_rounds + 1))
+    #train_celltype_labels = np.concatenate([train_celltype_labels] * (n_rounds+1))
+    #train_perturbation_labels = np.concatenate([train_perturbation_labels] * (n_rounds+1))
+    #train_batch_labels = np.concatenate([train_batch_labels] * (n_rounds+1))
+    #cell_ids_train = np.concatenate([cell_ids_train] * (n_rounds + 1))
 
 
     # prompt: shuffle the rows of all_counts and next_counts with the same order
