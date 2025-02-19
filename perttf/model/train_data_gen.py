@@ -157,6 +157,20 @@ def produce_training_datasets(adata_input, config,
                               cell_type_to_index = None,
                               genotype_to_index = None,
                               logger = scg.logger):
+    """
+    produce training datasets for from scRNA-seq 
+    Args:
+
+    adata_input (:class:`AnnData`):
+        The :class:`AnnData` object to preprocess.
+    input_layer_key (:class:`str`, optional):
+        The key of :class:`AnnData.obs` to use for expression layer. Default is the binned expression layer.
+    next_layer_key (:class:`str`, optional):
+        The key of :class:`AnnData.obs` to use for next-stage expression layer. Default is the binned expression layer.
+    next_cell_pred:
+        Whether to generate next cell fate prediction. Default is "identity" (simply duplicating input_layer_key).
+    """
+                                  
     # add necessary columns to adata
     adata_input.var["gene_name"] = adata_input.var.index.tolist()
 
@@ -181,6 +195,7 @@ def produce_training_datasets(adata_input, config,
     perturbation_indexes = None
     batch_indexes = None
     cell_ids = None
+    index_rounds=None
 
     if cell_type_to_index is None:
         cell_type_to_index = {cell_type: index for index, cell_type in enumerate(set(adata_input.obs["celltype"].tolist()))}
@@ -238,9 +253,12 @@ def produce_training_datasets(adata_input, config,
             num_batch_types = len(set(batch_ids))
             celltypes_indexes = celltypes_indexes_0
             perturbation_indexes = perturbation_indexes_0
-            cell_ids = adata.obs.index.values
-
+            #cell_ids = adata.obs.index.values
+            index_rounds = np.array([ni]*len(celltypes_labels_0])
         else:
+            adata_0.obs.index = adata_0.obs.index + "-r"+str(ni)
+            adata = adata.concatenate(adata2,batch_key='batch_merged_rounds',index_unique=None)
+            
             next_counts = np.concatenate([next_counts, next_counts_0], axis=0)
             all_counts = np.concatenate([all_counts, all_counts_0], axis=0)
             celltypes_labels = np.concatenate([celltypes_labels, celltypes_labels_0], axis=0)
@@ -248,7 +266,11 @@ def produce_training_datasets(adata_input, config,
             batch_ids = np.concatenate([batch_ids, batch_ids_0], axis=0)
             celltypes_indexes = np.concatenate([celltypes_indexes, celltypes_indexes_0], axis=0)
             perturbation_indexes = np.concatenate([perturbation_indexes, perturbation_indexes_0], axis=0)
-            cell_ids = np.concatenate([cell_ids, adata_0.obs.index.values],axis=0)
+            #cell_ids = np.concatenate([cell_ids, adata_0.obs.index.values],axis=0)
+            index_rounds = np.concatenate([index_rounds, np.array([ni]*len(celltypes_labels_0])], axis=0)
+            adata.obs['batch_merged_rounds'] = index_rounds
+
+        cell_ids = adata.obs.index.values
             
             # add next layers
 
@@ -282,8 +304,9 @@ def produce_training_datasets(adata_input, config,
     )
 
     adata.obs['is_in_training']=adata.obs.index.isin(cell_ids_train)
-    adata_small=adata[adata.obs['is_in_training']==True] # only consider training data
-
+    #adata_small=adata[adata.obs['is_in_training']==True] # only consider training data
+    adata_small=adata[adata.obs['is_in_training']==False] # only consider validation data
+    
     #for ni in range(n_rounds):
     #    print(f"round {ni}")
     #    adata_input_slice=adata_input[adata_input.obs.index.isin(adata_small.obs.index.values)]
