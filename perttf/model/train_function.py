@@ -98,9 +98,10 @@ def train(model: nn.Module,
             )
 
             masked_positions = input_values.eq(config.mask_value)  # the postions to predict
-            loss = loss_mse = criterion(
+            loss_mse = criterion(
                 output_dict["mlm_output"], target_values, masked_positions
             )
+            loss = config.this_weight * loss_mse
             metrics_to_log = {"train/mse": loss_mse.item()}
             loss_mse_next = criterion(
                 output_dict["mlm_output"], target_values_next, masked_positions
@@ -111,7 +112,7 @@ def train(model: nn.Module,
                 loss_zero_log_prob = criterion_neg_log_bernoulli(
                     output_dict["mlm_zero_probs"], target_values, masked_positions
                 )
-                loss = loss + loss_zero_log_prob
+                loss = loss + config.this_weight *loss_zero_log_prob
                 metrics_to_log.update({"train/nzlp": loss_zero_log_prob.item()})
                 # added
                 loss_zero_log_prob_next = criterion_neg_log_bernoulli(
@@ -123,7 +124,7 @@ def train(model: nn.Module,
                 loss_gepc = criterion(
                     output_dict["mvc_output"], target_values, masked_positions
                 )
-                loss = loss + loss_gepc
+                loss = loss + config.this_weight *loss_gepc
                 metrics_to_log.update({"train/mvc": loss_gepc.item()})
                 # added
                 loss_gepc_next = criterion(
@@ -135,7 +136,7 @@ def train(model: nn.Module,
                 loss_gepc_zero_log_prob = criterion_neg_log_bernoulli(
                     output_dict["mvc_zero_probs"], target_values, masked_positions
                 )
-                loss = loss + loss_gepc_zero_log_prob
+                loss = loss + config.this_weight *loss_gepc_zero_log_prob
                 metrics_to_log.update(
                     {"train/mvc_nzlp": loss_gepc_zero_log_prob.item()}
                 )
