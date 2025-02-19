@@ -48,9 +48,6 @@ class PerterbationDecoder(nn.Module):
             x = layer(x)
         return self.out_layer(x)
 
-
-
-
 class Batch2LabelEncoder(nn.Module):
     def __init__(
         self,
@@ -69,7 +66,6 @@ class Batch2LabelEncoder(nn.Module):
         x = self.enc_norm(x)
         return x
 
-
 class PertLabelEncoder(nn.Module):
     def __init__(
         self,
@@ -87,6 +83,34 @@ class PertLabelEncoder(nn.Module):
         x = self.embedding(x)  # (batch, embsize)
         x = self.enc_norm(x)
         return x
+
+
+class PertExpEncoder(nn.Module):
+    """
+    Concatenating gene expression embeddings (from transformers) with perturbation embeddings (from PertEncoder)
+    """
+    def __init__(
+        self,
+        d_model: int,
+        explicit_zero_prob: bool = False,
+        use_batch_labels: bool = False,
+    ):
+        super().__init__()
+        d_in = d_model * 2 if use_batch_labels else d_model
+        self.fc = nn.Sequential(
+            nn.Linear(d_in, d_model),
+            nn.LeakyReLU(),
+            nn.Linear(d_model, d_model),
+            nn.LeakyReLU(),
+            nn.Linear(d_model, 1),
+        )
+
+
+    def forward(self, x: Tensor) -> Dict[str, Tensor]:
+        """x is the output of the transformer, (batch, seq_len, d_model)"""
+        # pred_value = self.fc(x).squeeze(-1)  # (batch, seq_len)
+        return self.fc(x)
+
 
 
 class PerturbationTFModel(TransformerModel):
