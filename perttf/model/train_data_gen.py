@@ -254,10 +254,10 @@ def produce_training_datasets(adata_input, config,
             celltypes_indexes = celltypes_indexes_0
             perturbation_indexes = perturbation_indexes_0
             #cell_ids = adata.obs.index.values
-            index_rounds = np.array([ni]*len(celltypes_labels_0])
+            index_rounds = np.array([ni]*len(celltypes_labels_0))
         else:
             adata_0.obs.index = adata_0.obs.index + "-r"+str(ni)
-            adata = adata.concatenate(adata2,batch_key='batch_merged_rounds',index_unique=None)
+            adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
             
             next_counts = np.concatenate([next_counts, next_counts_0], axis=0)
             all_counts = np.concatenate([all_counts, all_counts_0], axis=0)
@@ -267,7 +267,7 @@ def produce_training_datasets(adata_input, config,
             celltypes_indexes = np.concatenate([celltypes_indexes, celltypes_indexes_0], axis=0)
             perturbation_indexes = np.concatenate([perturbation_indexes, perturbation_indexes_0], axis=0)
             #cell_ids = np.concatenate([cell_ids, adata_0.obs.index.values],axis=0)
-            index_rounds = np.concatenate([index_rounds, np.array([ni]*len(celltypes_labels_0])], axis=0)
+            index_rounds = np.concatenate([index_rounds, np.array([ni]*len(celltypes_labels_0))], axis=0)
             adata.obs['batch_merged_rounds'] = index_rounds
 
         cell_ids = adata.obs.index.values
