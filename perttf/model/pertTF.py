@@ -123,7 +123,9 @@ class PerturbationTFModel(TransformerModel):
         # add additional perturbs
         if input_pert_flags is not None:
             perts = self.pert_encoder(input_pert_flags)  # (batch, seq_len, embsize)
-            total_embs = total_embs + perts
+            #import pdb; pdb.set_trace()
+            perts_expand = perts.unsqueeze(1).repeat(1, total_embs.shape[1], 1)
+            total_embs = total_embs + perts_expand
 
         # batch2 TODO: use batch_encoder instead
         if batch_labels is not None:
