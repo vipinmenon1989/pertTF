@@ -82,7 +82,8 @@ class PerturbationTFModel(TransformerModel):
         d_model = self.d_model
         self.pert_pad_id = kwargs.get("pert_pad_id") if "pert_pad_id" in kwargs else 2
         pert_pad_id = self.pert_pad_id
-        self.pert_encoder = nn.Embedding(3, d_model, padding_idx=pert_pad_id)
+        #self.pert_encoder = nn.Embedding(3, d_model, padding_idx=pert_pad_id)
+        self.pert_encoder = Batch2LabelEncoder(n_pert, d_model, padding_idx=pert_pad_id)
 
         # the following is the perturbation decoder
         #n_pert = kwargs.get("n_perturb") if "n_perturb" in kwargs else 1
@@ -92,7 +93,7 @@ class PerturbationTFModel(TransformerModel):
         # added: batch2 encoder, especially to model different cellular systems like cell line vs primary cells
         self.batch2_pad_id = None #kwargs.get("batch2_pad_id") if "batch2_pad_id" in kwargs else 2
         #self.batch2_encoder = nn.Embedding(2, d_model, padding_idx=self.batch2_pad_id)
-        self.batch2_encoder = Batch2LabelEncoder(2, d_model)
+        self.batch2_encoder = Batch2LabelEncoder(2, d_model) # should replace 2 to n_batch later
         self.n_pert = n_pert
         self.n_cls = kwargs.get("n_cls") if "n_cls" in kwargs else 1
 
