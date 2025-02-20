@@ -245,11 +245,25 @@ class PerturbationTFModel(TransformerModel):
         # or, rewrite the forward function
         transformer_output = self._encode(
             src, values, src_key_padding_mask, batch_labels,
-            input_pert_flags= pert_labels,
+            # input_pert_flags= pert_labels, # Do we use pert_flags for transformer input?
         )
         if self.use_batch_labels:
             batch_emb = self.batch_encoder(batch_labels)  # (batch, embsize)
 
+        if pert_labels:
+            pert_emb = self.pert_encoder(pert_labels)
+            
+            tf_concat=torch.cat(
+                [
+                    transformer_output,
+                    pert_emb.unsqueeze(1).repeat(1, transformer_output.shape[1], 1),
+                ],
+                dim=2,
+            )
+            transformer_output_pe=self.pert_exp_encoder(tf_concat)
+        else:
+            transformer_output_pe=transformer_output
+            
         output = {}
         mlm_output = self.decoder(
             transformer_output
@@ -271,7 +285,10 @@ class PerturbationTFModel(TransformerModel):
         if self.explicit_zero_prob:
             output["mlm_zero_probs"] = mlm_output["zero_probs"]
 
-        cell_emb = self._get_cell_emb_from_layer(transformer_output, values)
+        #cell_emb = self._get_cell_emb_from_layer(transformer_output, values)        
+        cell_emb = self._get_cell_emb_from_layer(transformer_output_pe, values)
+        
+        
         output["cell_emb"] = cell_emb
 
         if CLS:
