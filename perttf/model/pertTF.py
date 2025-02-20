@@ -97,9 +97,11 @@ class PertExpEncoder(nn.Module):
         d_in = d_model * 2 
         self.fc = nn.Sequential(
             nn.Linear(d_in, d_model),
-            nn.ReLU(),#nn.LeakyReLU(),
+            nn.Sigmoid(),#nn.ReLU(),#nn.LeakyReLU(),
             nn.Linear(d_model, d_model),
-            nn.ReLU(),
+            #nn.ReLU(),
+            nn.Sigmoid(),
+            nn.Linear(d_model, d_model),
             nn.LayerNorm(d_model),
             #nn.Linear(d_model, d_model),
         )
@@ -244,14 +246,30 @@ class PerturbationTFModel(TransformerModel):
         #)
 
         # or, rewrite the forward function
-        transformer_output = self._encode(
+        transformer_output_0 = self._encode(
             src, values, src_key_padding_mask, batch_labels,
             # input_pert_flags= pert_labels, # Do we use pert_flags for transformer input?
         )
         if self.use_batch_labels:
             batch_emb = self.batch_encoder(batch_labels)  # (batch, embsize)
 
+        pert_emb = None
+        if pert_labels is not None :
+            pert_emb = self.pert_encoder(pert_labels)
+        # transformmer output concatenate ?
+        if pert_labels is not None :
 
+            #import pdb; pdb.set_trace()
+            tf_o_concat=torch.cat(
+                [
+                    transformer_output_0,
+                    pert_emb.unsqueeze(1).repeat(1, transformer_output_0.shape[1], 1),
+                ],
+                dim=2,
+            )
+            transformer_output=self.pert_exp_encoder(tf_o_concat)
+        else:
+            transformer_output=transformer_output_0
             
         output = {}
         mlm_output = self.decoder(
@@ -276,8 +294,8 @@ class PerturbationTFModel(TransformerModel):
 
         cell_emb_orig = self._get_cell_emb_from_layer(transformer_output, values)        
         
-        if pert_labels is not None:
-            pert_emb = self.pert_encoder(pert_labels)
+        # only concatenate cell embedding?
+        if pert_labels is not None and False:
             #import pdb; pdb.set_trace()
             tf_concat=torch.cat(
                 [
