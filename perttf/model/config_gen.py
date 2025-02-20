@@ -2,13 +2,16 @@ import os
 import sys
 import wandb
 
+from typing import Literal
+
 from scgpt.utils import set_seed
 import copy
 
 # Check the Python interpreter being used
 #print(sys.executable)
 
-def generate_config(parameter_dict,wandb_mode="disabled"):
+def generate_config(parameter_dict,
+        wandb_mode : Literal["disabled","online","offline"] = "disabled"):
     # If it's not the desired interpreter, set the WANDB__EXECUTABLE environment variable
     # For example, if you want to use Python 3.8:
     os.environ["WANDB__EXECUTABLE"] = "/usr/local/bin/python"  # Replace with the actual path

@@ -250,19 +250,7 @@ class PerturbationTFModel(TransformerModel):
         if self.use_batch_labels:
             batch_emb = self.batch_encoder(batch_labels)  # (batch, embsize)
 
-        if pert_labels:
-            pert_emb = self.pert_encoder(pert_labels)
-            
-            tf_concat=torch.cat(
-                [
-                    transformer_output,
-                    pert_emb.unsqueeze(1).repeat(1, transformer_output.shape[1], 1),
-                ],
-                dim=2,
-            )
-            transformer_output_pe=self.pert_exp_encoder(tf_concat)
-        else:
-            transformer_output_pe=transformer_output
+
             
         output = {}
         mlm_output = self.decoder(
@@ -285,9 +273,21 @@ class PerturbationTFModel(TransformerModel):
         if self.explicit_zero_prob:
             output["mlm_zero_probs"] = mlm_output["zero_probs"]
 
-        #cell_emb = self._get_cell_emb_from_layer(transformer_output, values)        
-        cell_emb = self._get_cell_emb_from_layer(transformer_output_pe, values)
+        cell_emb_orig = self._get_cell_emb_from_layer(transformer_output, values)        
         
+        if pert_labels is not None:
+            pert_emb = self.pert_encoder(pert_labels)
+            #import pdb; pdb.set_trace()
+            tf_concat=torch.cat(
+                [
+                    cell_emb_orig,
+                    pert_emb,
+                ],
+                dim=1,
+            )
+            cell_emb=self.pert_exp_encoder(tf_concat)
+        else:
+            cell_emb=cell_emb_orig
         
         output["cell_emb"] = cell_emb
 
