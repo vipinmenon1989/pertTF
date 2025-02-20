@@ -87,29 +87,27 @@ class PertLabelEncoder(nn.Module):
 
 class PertExpEncoder(nn.Module):
     """
-    Concatenating gene expression embeddings (from transformers) with perturbation embeddings (from PertEncoder)
+    Concatenating gene expression embeddings (from transformers) with perturbation embeddings (from scGPT's PertEncoder)
     """
     def __init__(
         self,
-        d_model: int,
-        explicit_zero_prob: bool = False,
-        use_batch_labels: bool = False,
+        d_model: int
     ):
         super().__init__()
-        d_in = d_model * 2 if use_batch_labels else d_model
+        d_in = d_model * 2 
         self.fc = nn.Sequential(
             nn.Linear(d_in, d_model),
             nn.LeakyReLU(),
             nn.Linear(d_model, d_model),
             nn.LeakyReLU(),
-            nn.Linear(d_model, 1),
+            nn.Linear(d_model, d_model),
         )
 
 
     def forward(self, x: Tensor) -> Dict[str, Tensor]:
-        """x is the output of the transformer, (batch, seq_len, d_model)"""
-        # pred_value = self.fc(x).squeeze(-1)  # (batch, seq_len)
-        return self.fc(x)
+        """x is the output of the transformer concatenated with perturbation embedding, (batch, d_model*2)"""
+        # pred_value = self.fc(x).squeeze(-1)  
+        return self.fc(x) # (batch, d_model)
 
 
 
@@ -126,6 +124,8 @@ class PerturbationTFModel(TransformerModel):
         pert_pad_id = self.pert_pad_id
         #self.pert_encoder = nn.Embedding(3, d_model, padding_idx=pert_pad_id)
         self.pert_encoder = PertLabelEncoder(n_pert, d_model, padding_idx=pert_pad_id)
+
+        self.pert_exp_encoder = PertExpEncoder (d_model) 
 
         # the following is the perturbation decoder
         #n_pert = kwargs.get("n_perturb") if "n_perturb" in kwargs else 1
