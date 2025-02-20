@@ -97,10 +97,11 @@ class PertExpEncoder(nn.Module):
         d_in = d_model * 2 
         self.fc = nn.Sequential(
             nn.Linear(d_in, d_model),
-            nn.LeakyReLU(),
+            nn.ReLU(),#nn.LeakyReLU(),
             nn.Linear(d_model, d_model),
-            nn.LeakyReLU(),
-            nn.Linear(d_model, d_model),
+            nn.ReLU(),
+            nn.LayerNorm(d_model),
+            #nn.Linear(d_model, d_model),
         )
 
 
