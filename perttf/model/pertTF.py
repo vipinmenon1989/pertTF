@@ -100,9 +100,9 @@ class PertExpEncoder(nn.Module):
             nn.Sigmoid(),#nn.ReLU(),#nn.LeakyReLU(),
             nn.Linear(d_model, d_model),
             #nn.ReLU(),
-            nn.Sigmoid(),
-            nn.Linear(d_model, d_model),
-            nn.LayerNorm(d_model),
+            #nn.Sigmoid(),
+            #nn.Linear(d_model, d_model),
+            #nn.LayerNorm(d_model),
             #nn.Linear(d_model, d_model),
         )
 
