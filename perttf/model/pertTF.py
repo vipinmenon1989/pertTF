@@ -248,7 +248,7 @@ class PerturbationTFModel(TransformerModel):
         # or, rewrite the forward function
         transformer_output_0 = self._encode(
             src, values, src_key_padding_mask, batch_labels,
-            # input_pert_flags= pert_labels, # Do we use pert_flags for transformer input?
+            input_pert_flags= pert_labels, # Do we use pert_flags for transformer input?
         )
         if self.use_batch_labels:
             batch_emb = self.batch_encoder(batch_labels)  # (batch, embsize)
@@ -257,7 +257,7 @@ class PerturbationTFModel(TransformerModel):
         if pert_labels is not None :
             pert_emb = self.pert_encoder(pert_labels)
         # transformmer output concatenate ?
-        if pert_labels is not None :
+        if pert_labels is not None and False:
 
             #import pdb; pdb.set_trace()
             tf_o_concat=torch.cat(
