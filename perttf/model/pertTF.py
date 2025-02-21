@@ -390,6 +390,7 @@ class PerturbationTFModel(TransformerModel):
         src_key_padding_mask: Tensor,
         batch_size: int,
         batch_labels: Optional[Tensor] = None,
+        pert_labels: Optional[Tensor] = None,
         output_to_cpu: bool = True,
         time_step: Optional[int] = None,
         return_np: bool = False,
@@ -437,11 +438,13 @@ class PerturbationTFModel(TransformerModel):
             values_d = values[i : i + batch_size].to(device)
             src_key_padding_mask_d = src_key_padding_mask[i : i + batch_size].to(device)
             batch_labels_d = batch_labels[i : i + batch_size].to(device) if batch_labels is not None else None
+            pert_labels_d = pert_labels[i : i + batch_size].to(device) if pert_labels is not None else None
             raw_output = self._encode(
                 src_d,
                 values_d,
                 src_key_padding_mask_d,
                 batch_labels_d,
+                input_pert_flags= pert_labels_d, # Do we use pert_flags for transformer input?
             )
             output = raw_output.detach()
             if output_to_cpu:
