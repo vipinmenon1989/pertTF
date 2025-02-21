@@ -197,6 +197,7 @@ def train(model: nn.Module,
                 input_values,
                 src_key_padding_mask=src_key_padding_mask,
                 batch_labels=batch_labels if config.use_batch_label else None, # if config.DSBN else None,
+                pert_labels = perturbation_labels if config.perturbation_input else None,
                 MVC=config.GEPC,
                 ECS=config.ecs_thres > 0,
                 CLS=config.cell_type_classifier,
@@ -345,6 +346,7 @@ def evaluate(model: nn.Module,
                     input_values,
                     src_key_padding_mask=src_key_padding_mask,
                     batch_labels=batch_labels if config.use_batch_label else None, # if config.DSBN else None,
+                    pert_labels = perturbation_labels if config.perturbation_input else None,
                     MVC=config.GEPC,
                     ECS=config.ecs_thres > 0,
                     CLS=config.cell_type_classifier,
@@ -507,6 +509,7 @@ def eval_testdata(
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
+                pert_labels = perturbation_labels if config.perturbation_input else None,                                                                     
                 time_step=0,
                 return_np=True,
             )
@@ -845,5 +848,7 @@ def wrapper_train(model, config, data_gen,
     }
     torch.save(running_parameters, save_dir / "running_parameters.pt")
     return best_model
+
+
 
 
