@@ -614,7 +614,7 @@ def eval_testdata(
                 frameon=False,
                 return_fig=True,
                 show=False,
-                palette="Set1",
+                palette="tab20",
             )
             results["genotype_umap2"] = fig2
 
