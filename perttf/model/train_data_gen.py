@@ -226,6 +226,8 @@ def produce_training_datasets(adata_input, config,
     num_batch_types = -1
     celltypes_indexes = None
     perturbation_indexes = None
+    celltypes_indexes_next = None
+    perturbation_indexes_next = None
     batch_indexes = None
     cell_ids = None
     index_rounds=None
@@ -242,7 +244,11 @@ def produce_training_datasets(adata_input, config,
     for ni in range(n_rounds):
         # predict the next state of a cell
         #next_counts_0,adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
-        all_counts_0,next_counts_0, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        (all_counts_0,next_counts_0, 
+            celltypes_labels_0, perturbation_labels_0, 
+            batch_ids_0, 
+            celltypes_labels_next, perturbation_labels_next, 
+            adata_0) = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
         #all_counts_0 = (adata_0.layers[input_layer_key].A if issparse(adata_0.layers[input_layer_key]) else adata_0.layers[input_layer_key])
 
         # generate cell type indexs and perturbation indexes
@@ -256,6 +262,13 @@ def produce_training_datasets(adata_input, config,
         perturbation_indexes_0 = [genotype_to_index[genotype] for genotype in perturbation_labels_0]
         perturbation_indexes_0 = np.array(perturbation_indexes_0)
 
+        # add variables for next prediction
+        celltypes_indexes_next_0 = [cell_type_to_index[cell_type] for cell_type in celltypes_labels_next]
+        celltypes_indexes_next_0 = np.array(celltypes_indexes_next_0)
+
+        perturbation_indexes_next_0 = [genotype_to_index[genotype] for genotype in perturbation_labels_next]
+        perturbation_indexes_next_0 = np.array(perturbation_indexes_next_0)
+
         if adata is None:
             adata = adata_0.copy()
             next_counts = next_counts_0
@@ -268,11 +281,13 @@ def produce_training_datasets(adata_input, config,
             num_batch_types = len(set(batch_ids))
             celltypes_indexes = celltypes_indexes_0
             perturbation_indexes = perturbation_indexes_0
-            #cell_ids = adata.obs.index.values
+            celltypes_indexes_next = celltypes_indexes_next_0
+            perturbation_indexes_next = perturbation_indexes_next_0
+            cell_ids = adata.obs.index.values
             index_rounds = np.array([ni]*len(celltypes_labels_0))
         else:
             adata_0.obs.index = adata_0.obs.index + "-r"+str(ni)
-            adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
+            #adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
             
             next_counts = np.concatenate([next_counts, next_counts_0], axis=0)
             all_counts = np.concatenate([all_counts, all_counts_0], axis=0)
@@ -281,11 +296,13 @@ def produce_training_datasets(adata_input, config,
             batch_ids = np.concatenate([batch_ids, batch_ids_0], axis=0)
             celltypes_indexes = np.concatenate([celltypes_indexes, celltypes_indexes_0], axis=0)
             perturbation_indexes = np.concatenate([perturbation_indexes, perturbation_indexes_0], axis=0)
-            #cell_ids = np.concatenate([cell_ids, adata_0.obs.index.values],axis=0)
+            celltypes_indexes_next = np.concatenate([celltypes_indexes_next, celltypes_indexes_next_0], axis=0)
+            perturbation_indexes_next = np.concatenate([perturbation_indexes_next, perturbation_indexes_next_0], axis=0)
+            cell_ids = np.concatenate([cell_ids, adata_0.obs.index.values],axis=0)
             index_rounds = np.concatenate([index_rounds, np.array([ni]*len(celltypes_labels_0))], axis=0)
-            adata.obs['batch_merged_rounds'] = index_rounds
+            #.obs['batch_merged_rounds'] = index_rounds
 
-        cell_ids = adata.obs.index.values
+        #cell_ids = adata.obs.index.values
             
             # add next layers
 
@@ -302,25 +319,23 @@ def produce_training_datasets(adata_input, config,
 
     # now, split train and test data
     (
-        train_data,
-        valid_data,
-        train_celltype_labels,
-        valid_celltype_labels,
-        train_perturbation_labels,
-        valid_perturbation_labels,
-        train_batch_labels,
-        valid_batch_labels,
-        train_data_next,
-        valid_data_next,
-        cell_ids_train,
-        cell_ids_valid
+        train_data, valid_data, # all_counts 
+        train_celltype_labels, valid_celltype_labels, # celltypes_indexes
+        train_perturbation_labels, valid_perturbation_labels,
+        train_batch_labels,  valid_batch_labels,
+        train_data_next, valid_data_next,
+        train_celltype_labels_next, valid_celltype_labels_next, # celltypes_indexes_next
+        train_perturbation_labels_next, valid_perturbation_labels_next, # perturbation_indexes_next
+        cell_ids_train, cell_ids_valid
     ) = train_test_split(
-        all_counts, celltypes_indexes, perturbation_indexes, batch_ids, next_counts, cell_ids, test_size=0.1, shuffle=True
+        all_counts, celltypes_indexes, perturbation_indexes, batch_ids, next_counts, 
+        celltypes_indexes_next, perturbation_indexes_next,
+        cell_ids, test_size=0.1, shuffle=True
     )
 
     adata.obs['is_in_training']=adata.obs.index.isin(cell_ids_train)
     #adata_small=adata[adata.obs['is_in_training']==True] # only consider training data
-    adata_small=adata[adata.obs['is_in_training']==False] # only consider validation data
+    adata_small=adata[adata.obs['is_in_training']==False] # only consider validation data; note that for pert, this only contains adata of the round 0
     
     #for ni in range(n_rounds):
     #    print(f"round {ni}")
@@ -351,6 +366,8 @@ def produce_training_datasets(adata_input, config,
     train_celltype_labels = train_celltype_labels[indices]
     train_perturbation_labels = train_perturbation_labels[indices]
     train_batch_labels = train_batch_labels[indices]
+    train_celltype_labels_next = train_celltype_labels_next[indices]
+    train_perturbation_labels_next = train_perturbation_labels_next[indices]
     cell_ids_train = cell_ids_train[indices]
 
     if config.per_seq_batch_sample  and "batch_id" in adata.obs.columns: # and config.DSBN
@@ -444,6 +461,10 @@ def produce_training_datasets(adata_input, config,
         'valid_perturbation_labels': valid_perturbation_labels,
         'train_batch_labels': train_batch_labels,
         'valid_batch_labels': valid_batch_labels,
+        'train_celltype_labels_next': train_celltype_labels_next, # next cell type
+        'valid_celltype_labels_next': valid_celltype_labels_next, 
+        'train_perturbation_labels_next': train_perturbation_labels_next, # next genotype
+        'valid_perturbation_labels_next': valid_perturbation_labels_next,
         'cell_ids_train': cell_ids_train,
         'cell_ids_valid': cell_ids_valid,
         'tokenized_train': tokenized_train,
