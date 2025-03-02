@@ -46,7 +46,7 @@ def add_pred_layer(adata: AnnData,
     else:
         adata_p = adata[adata.obs['genotype']=='WT']
 
-    all_counts_0 = (adata_p.layers[input_layer_key].A if issparse(adata_p.layers[input_layer_key]) else adata_p.layers[input_layer_key])
+    all_counts_0 = (adata_p.layers[binned_layer_key].A if issparse(adata_p.layers[binned_layer_key]) else adata_p.layers[binned_layer_key])
 
     if "celltype" in adata_p.obs.columns:
         celltypes_labels_0 = adata_p.obs["celltype"].tolist()  # make sure count from 0
@@ -242,7 +242,7 @@ def produce_training_datasets(adata_input, config,
     for ni in range(n_rounds):
         # predict the next state of a cell
         #next_counts_0,adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
-        all_counts_0,input_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        all_counts_0,next_counts_0, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
         #all_counts_0 = (adata_0.layers[input_layer_key].A if issparse(adata_0.layers[input_layer_key]) else adata_0.layers[input_layer_key])
 
         # generate cell type indexs and perturbation indexes
