@@ -81,6 +81,9 @@ def train(model: nn.Module,
         celltype_labels = batch_data["celltype_labels"].to(device) #added
         perturbation_labels = batch_data["perturbation_labels"].to(device) #added
 
+        celltype_labels_next = batch_data["celltype_labels_next"].to(device) #added
+        perturbation_labels_next = batch_data["perturbation_labels_next"].to(device) #added
+
         src_key_padding_mask = input_gene_ids.eq(vocab[config.pad_token])
         with torch.cuda.amp.autocast(enabled=config.amp):
             #import pdb; pdb.set_trace()
@@ -91,6 +94,7 @@ def train(model: nn.Module,
                 src_key_padding_mask=src_key_padding_mask,
                 batch_labels=batch_labels if config.use_batch_label else None, # if config.DSBN else None,
                 pert_labels = perturbation_labels if config.perturbation_input else None,
+                pert_labels_next = perturbation_labels_next if config.next_weight >0 else None,
                 MVC=config.GEPC,
                 ECS=config.ecs_thres > 0,
                 CLS=config.cell_type_classifier,
@@ -103,11 +107,15 @@ def train(model: nn.Module,
             )
             loss = config.this_weight * loss_mse
             metrics_to_log = {"train/mse": loss_mse.item()}
+            # next value?
             loss_mse_next = criterion(
-                output_dict["mlm_output"], target_values_next, masked_positions
+                output_dict["mlm_output"], 
+                target_values_next, masked_positions
             )
-            loss = loss + config.next_weight * loss_mse_next
+            # disable now 
+            #loss = loss + config.next_weight * loss_mse_next
             metrics_to_log.update({"train/mse_next": loss_mse_next.item()})
+
             if config.explicit_zero_prob:
                 loss_zero_log_prob = criterion_neg_log_bernoulli(
                     output_dict["mlm_zero_probs"], target_values, masked_positions
@@ -118,7 +126,7 @@ def train(model: nn.Module,
                 loss_zero_log_prob_next = criterion_neg_log_bernoulli(
                     output_dict["mlm_zero_probs"], target_values_next, masked_positions
                 )
-                loss = loss + config.next_weight *loss_zero_log_prob_next
+                #loss = loss + config.next_weight *loss_zero_log_prob_next
                 metrics_to_log.update({"train/nzlp_next": loss_zero_log_prob_next.item()})
             if config.GEPC:
                 loss_gepc = criterion(
@@ -128,7 +136,7 @@ def train(model: nn.Module,
                 metrics_to_log.update({"train/mvc": loss_gepc.item()})
                 # added
                 loss_gepc_next = criterion(
-                    output_dict["mvc_output"], target_values_next, masked_positions
+                    output_dict["mvc_output_next"], target_values_next, masked_positions
                 )
                 loss = loss + config.next_weight * loss_gepc_next
                 metrics_to_log.update({"train/mvc_next": loss_gepc_next.item()})
@@ -142,7 +150,7 @@ def train(model: nn.Module,
                 )
                 # added
                 loss_gepc_zero_log_prob_next = criterion_neg_log_bernoulli(
-                    output_dict["mvc_zero_probs"], target_values_next, masked_positions
+                    output_dict["mvc_zero_probs_next"], target_values_next, masked_positions
                 )
                 loss = loss + config.next_weight * loss_gepc_zero_log_prob_next
                 metrics_to_log.update(
@@ -152,6 +160,10 @@ def train(model: nn.Module,
                 loss_cls = criterion_cls(output_dict["cls_output"], celltype_labels)
                 loss = loss + config.cell_type_classifier_weight * loss_cls
                 metrics_to_log.update({"train/cls": loss_cls.item()})
+                # add for next cls prediction
+                loss_cls_next = criterion_cls(output_dict["cls_output_next"], celltype_labels_next)
+                loss = loss + config.cell_type_classifier_weight * config.next_weight *  loss_cls_next
+                metrics_to_log.update({"train/cls_next": loss_cls_next.item()})
 
                 error_rate = 1 - (
                     (output_dict["cls_output"].argmax(1) == celltype_labels)
@@ -162,6 +174,11 @@ def train(model: nn.Module,
                 loss_pert = criterion_pert(output_dict["pert_output"], perturbation_labels)
                 loss = loss + config.perturbation_classifier_weight * loss_pert
                 metrics_to_log.update({"train/pert": loss_pert.item()})
+                # add for next pert prediction
+                loss_pert_next = criterion_pert(output_dict["pert_output_next"], perturbation_labels_next)
+                loss = loss + config.perturbation_classifier_weight * config.next_weight * loss_pert_next
+                metrics_to_log.update({"train/pert_next": loss_pert_next.item()})
+
             if config.ecs_thres > 0:
                 loss_ecs = config.ecs_weight  * output_dict["loss_ecs"]
                 loss = loss + loss_ecs

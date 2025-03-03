@@ -202,6 +202,7 @@ class PerturbationTFModel(TransformerModel):
         src_key_padding_mask: Tensor,
         batch_labels: Optional[Tensor] = None,
         pert_labels: Optional[Tensor] = None, 
+        pert_labels_next: Optional[Tensor] = None, 
         CLS: bool = False,
         CCE: bool = False,
         MVC: bool = False,
@@ -216,6 +217,8 @@ class PerturbationTFModel(TransformerModel):
             src_key_padding_mask (:obj:`Tensor`): mask for src, shape [batch_size,
                 seq_len]
             batch_labels (:obj:`Tensor`): batch labels, shape [batch_size]
+            pert_labels (:obj:`Tensor`): perturbation labels, shape [batch_size]
+            pert_labels_next (:obj:`Tensor`): perturbation labels for prediction, shape [batch_size]
             CLS (:obj:`bool`): if True, return the celltype classification objective
                 (CLS) output
             CCE (:obj:`bool`): if True, return the contrastive cell embedding objective
@@ -257,6 +260,7 @@ class PerturbationTFModel(TransformerModel):
         if pert_labels is not None :
             pert_emb = self.pert_encoder(pert_labels)
         # transformmer output concatenate ?
+        # note only input pert_labels should be concatenated, not pert_label_next
         if pert_labels is not None and False:
 
             #import pdb; pdb.set_trace()
@@ -294,24 +298,28 @@ class PerturbationTFModel(TransformerModel):
 
         cell_emb_orig = self._get_cell_emb_from_layer(transformer_output, values)        
         
-        # only concatenate cell embedding?
-        if pert_labels is not None and False:
+        #  concatenate cell embedding with perturbation embedding to generate next cell embedding
+        if pert_labels_next is not None: #and False:
             #import pdb; pdb.set_trace()
+            pert_emb_next = self.pert_encoder(pert_labels_next)
             tf_concat=torch.cat(
                 [
                     cell_emb_orig,
-                    pert_emb,
+                    pert_emb_next,
                 ],
                 dim=1,
             )
-            cell_emb=self.pert_exp_encoder(tf_concat)
+            cell_emb_next=self.pert_exp_encoder(tf_concat)
         else:
-            cell_emb=cell_emb_orig
+            cell_emb_next=cell_emb_orig
         
+        cell_emb = cell_emb_orig
         output["cell_emb"] = cell_emb
+        output["cell_emb_next"] = cell_emb_next
 
         if CLS:
             output["cls_output"] = self.cls_decoder(cell_emb)  # (batch, n_cls)
+            output["cls_output_next"] = self.cls_decoder(cell_emb_next)  # (batch, n_cls)
         if CCE:
             cell1 = cell_emb
             transformer_output2 = self._encode(
@@ -350,13 +358,25 @@ class PerturbationTFModel(TransformerModel):
                 # else cell_emb + batch_emb,
                 self.cur_gene_token_embs,
             )
+            mvc_output_next = self.mvc_decoder(
+                cell_emb_next
+                if not self.use_batch_labels
+                else torch.cat([cell_emb_next, batch_emb], dim=1),
+                # else cell_emb + batch_emb,
+                self.cur_gene_token_embs, # is it working well??
+            )
             if self.explicit_zero_prob and do_sample:
                 bernoulli = Bernoulli(probs=mvc_output["zero_probs"])
                 output["mvc_output"] = bernoulli.sample() * mvc_output["pred"]
+
+                bernoulli_n = Bernoulli(probs=mvc_output_next["zero_probs"])
+                output["mvc_output_next"] = bernoulli.sample() * mvc_output_next["pred"]
             else:
                 output["mvc_output"] = mvc_output["pred"]  # (batch, seq_len)
+                output["mvc_output_next"] = mvc_output_next["pred"]  # (batch, seq_len)
             if self.explicit_zero_prob:
                 output["mvc_zero_probs"] = mvc_output["zero_probs"]
+                output["mvc_zero_probs_next"] = mvc_output_next["zero_probs"]
         if ECS:
             # Here using customized cosine similarity instead of F.cosine_similarity
             # to avoid the pytorch issue of similarity larger than 1.0, pytorch # 78064
@@ -378,8 +398,9 @@ class PerturbationTFModel(TransformerModel):
 
         # get cell embedding
         if PERTPRED:
-            cell_emb = output["cell_emb"]
+            #cell_emb = output["cell_emb"]
             output["pert_output"] = self.pert_decoder(cell_emb)  # (batch, n_cls)
+            output["pert_output_next"] = self.pert_decoder(cell_emb_next)  # (batch, n_cls)
 
         return output
 
