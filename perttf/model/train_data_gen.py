@@ -44,7 +44,8 @@ def add_pred_layer(adata: AnnData,
     if next_cell_pred == "identity":
         adata_p = adata
     else:
-        adata_p = adata[adata.obs['genotype']=='WT']
+        #adata_p = adata[adata.obs['genotype']=='WT']
+        adata_p = adata
 
     all_counts_0 = (adata_p.layers[binned_layer_key].A if issparse(adata_p.layers[binned_layer_key]) else adata_p.layers[binned_layer_key])
 
@@ -93,7 +94,11 @@ def add_pred_layer(adata: AnnData,
 
     for this_cell in adata_p.obs.index.values:
         this_cell_type = adata_p.obs.loc[this_cell]['celltype']
-        next_pert_value=random.choice(list(next_cell_dict[this_cell_type].keys()))
+        this_geno_type = adata_p.obs.loc[this_cell]['genotype']
+        if this_geno_type == 'WT': # randomly select a different genotype
+            next_pert_value=random.choice(list(next_cell_dict[this_cell_type].keys()))
+        else: # choose the same perturb as the next pert (i.e., no combination perturbation) for training
+            next_pert_value = this_geno_type
         target_pert.append(next_pert_value)
         next_cell = random.choice(next_cell_dict[this_cell_type][next_pert_value])
         target_cell_id.append(next_cell)
