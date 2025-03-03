@@ -609,6 +609,18 @@ def eval_testdata(
                 show=False,
             )
             results["celltype_umap"] = fig
+            fig4 = sc.pl.umap(
+                adata_t,
+                color=["predicted_celltype"],
+                title=[
+                    f"{eval_key} pred celltype, e{epoch}",
+                ],
+                frameon=False,
+                return_fig=True,
+                show=False,
+                #palette="Set1",
+            )
+            results["pred_celltype"] = fig4
 
         if config.perturbation_classifier_weight > -1:
             fig = sc.pl.umap(
@@ -648,18 +660,19 @@ def eval_testdata(
             )
             results["pred_genotype"] = fig3
 
-            fig4 = sc.pl.umap(
-                adata_t,
-                color=["predicted_celltype"],
-                title=[
-                    f"{eval_key} pred celltype, e{epoch}",
-                ],
-                frameon=False,
-                return_fig=True,
-                show=False,
-                #palette="Set1",
-            )
-            results["pred_celltype"] = fig4
+            if "genotype_next" in adata_t.obs:
+                fig5 = sc.pl.umap(
+                    adata_t,
+                    color=["genotype_next"],
+                    title=[
+                        f"{eval_key} next genotype, with different color e{epoch}",
+                    ],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                    #palette="Set1",
+                )
+                results["genotype_next"] = fig5
 
     results['adata'] = adata_t
     return results
@@ -828,7 +841,7 @@ def wrapper_train(model, config, data_gen,
                 #if "umap" in results:
                 #    results["umap"].savefig(save_dir / f"embeddings_umap[cls]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
 
-                save_image_types=["batch_umap","celltype_umap","genotype_umap","genotype_umap2","pred_genotype","pred_celltype"]
+                save_image_types=["batch_umap","celltype_umap","genotype_umap","genotype_umap2","pred_genotype","pred_celltype","genotype_next"]
                 for res_key, res_img_val in results.items():
                     if res_key in save_image_types:
                         res_img_val.savefig(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png", dpi=300,bbox_inches='tight')
