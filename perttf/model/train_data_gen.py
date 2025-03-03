@@ -86,7 +86,7 @@ def add_pred_layer(adata: AnnData,
             if len(included_cells) > 0:
                 next_cell_dict[candidate_celltype][candidate_genotype] = included_cells
 
-    adata_p = adata[adata.obs['genotype']=='WT']
+    # adata_p = adata[adata.obs['genotype']=='WT']
 
     target_pert=[]
     target_cell_id=[]
@@ -287,7 +287,7 @@ def produce_training_datasets(adata_input, config,
             index_rounds = np.array([ni]*len(celltypes_labels_0))
         else:
             adata_0.obs.index = adata_0.obs.index + "-r"+str(ni)
-            #adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
+            adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
             
             next_counts = np.concatenate([next_counts, next_counts_0], axis=0)
             all_counts = np.concatenate([all_counts, all_counts_0], axis=0)
