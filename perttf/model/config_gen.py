@@ -5,21 +5,11 @@ from typing import Literal
 import wandb
 from scgpt.utils import set_seed
 
-os.environ["WANDB_API_KEY"] = (
-    "4089179d9fa80624a810f164106dbae1add9ffba"  # Replace with actual key
-)
-os.environ["WANDB_SILENT"] = "true"  # Optional: suppress warnings
-
-
 def generate_config(
     parameter_dict, wandb_mode: Literal["disabled", "online", "offline"] = "disabled"
 ):
     # If it's not the desired interpreter, set the WANDB__EXECUTABLE environment variable
     # For example, if you want to use Python 3.8:
-    os.environ["WANDB__EXECUTABLE"] = (
-        "/usr/local/bin/python"  # Replace with the actual path
-    )
-
     # settings for input and preprocessing
 
     parameter_dict["special_tokens"] = [parameter_dict["pad_token"], "<cls>", "<eoc>"]

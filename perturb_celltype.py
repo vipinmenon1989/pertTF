@@ -22,7 +22,6 @@ from scgpt.preprocess import Preprocessor
 from scgpt.utils import load_pretrained
 
 sc.set_figure_params(figsize=(4, 4))
-os.environ["KMP_WARNINGS"] = "off"
 warnings.filterwarnings("ignore")
 
 # sys.path.insert(0, "/content/pertTF/")
