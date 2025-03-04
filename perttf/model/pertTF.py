@@ -411,7 +411,8 @@ class PerturbationTFModel(TransformerModel):
         src_key_padding_mask: Tensor,
         batch_size: int,
         batch_labels: Optional[Tensor] = None,
-        pert_labels: Optional[Tensor] = None,
+        pert_labels: Optional[Tensor] = None, # the first perturbation
+        pert_labels_next: Optional[Tensor] = None, # the second perturbation
         output_to_cpu: bool = True,
         time_step: Optional[int] = None,
         return_np: bool = False,
@@ -445,7 +446,7 @@ class PerturbationTFModel(TransformerModel):
             else (N, src.size(1), self.d_model)
         )
         outputs = array_func(shape, dtype=float32_)
-
+        outputs_next = array_func(shape, dtype=float32_)
         # added for perturbation predictions
         shape_perts = (N, self.n_pert) if time_step is not None else (N, src.size(1), self.n_pert)
         pert_outputs = array_func(shape_perts, dtype=float32_)
@@ -460,6 +461,7 @@ class PerturbationTFModel(TransformerModel):
             src_key_padding_mask_d = src_key_padding_mask[i : i + batch_size].to(device)
             batch_labels_d = batch_labels[i : i + batch_size].to(device) if batch_labels is not None else None
             pert_labels_d = pert_labels[i : i + batch_size].to(device) if pert_labels is not None else None
+            pert_labels_next_d = pert_labels_next[i : i + batch_size].to(device) if pert_labels_next is not None else None
             raw_output = self._encode(
                 src_d,
                 values_d,
@@ -478,6 +480,22 @@ class PerturbationTFModel(TransformerModel):
 
             #import pdb; pdb.set_trace()
             cell_emb = self._get_cell_emb_from_layer(raw_output, values_d)
+            
+            if pert_labels_next_d is not None:
+                pert_emb_next = self.pert_encoder(pert_labels_next_d)
+                tf_concat=torch.cat(
+                    [cell_emb,pert_emb_next], dim=1,
+                )
+                cell_emb_next=self.pert_exp_encoder(tf_concat)
+                if output_to_cpu:
+                    cell_emb_next = cell_emb_next.cpu()
+                if return_np:
+                    cell_emb_next = cell_emb_next.numpy()
+                outputs_next[i : i + batch_size] = cell_emb_next
+            else:
+                #cell_emb_next=None
+                outputs_next[i : i + batch_size] = output
+            
             pert_output = self.pert_decoder(cell_emb)
             if output_to_cpu:
                 pert_output = pert_output.cpu()
@@ -494,5 +512,5 @@ class PerturbationTFModel(TransformerModel):
                 cls_output = cls_output.numpy()
             cls_outputs[i : i + batch_size] = cls_output
 
-        return outputs, pert_outputs, cls_outputs
+        return outputs, outputs_next, pert_outputs, cls_outputs
 
