@@ -474,6 +474,23 @@ def eval_testdata(
     perturbation_labels = np.array(perturbation_labels)
     perturbation_indexes = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels])
 
+    # evaluate the next prediction?
+    
+    if "genotype_next" in adata_t.obs.columns and config.perturbation_classifier_weight > 0 and config.next_cell_pred_type == 'pert':
+        next_cell_prediction = True
+    else:
+        next_cell_prediction = False
+    if next_cell_prediction:
+        perturbation_labels_next = adata_t.obs["genotype_next"].tolist()  # make sure count from 0
+    else:
+        perturbation_labels_next = random.choices( [0,1], k=adata_t.shape[0])
+
+    perturbation_labels_next = np.array(perturbation_labels_next)
+    if next_cell_prediction:
+        perturbation_indexes_next = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels_next])
+    else:
+        perturbation_indexes_next = None
+    
     if "batch_id" in adata_t.obs.columns: # and config.DSBN:
         batch_ids = adata_t.obs["batch_id"].tolist()
     else:
@@ -522,11 +539,12 @@ def eval_testdata(
             #    time_step=0,
             #    return_np=True,
             #)
-            cell_embeddings, pert_preds, cls_preds = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
+            cell_embeddings, cell_embeddings_next, pert_preds, cls_preds = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
-                pert_labels = torch.from_numpy(perturbation_indexes).long() if config.perturbation_input else None,                                                                     
+                pert_labels = torch.from_numpy(perturbation_indexes).long() if config.perturbation_input else None,
+                pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
                 time_step=0,
                 return_np=True,
             )
@@ -534,8 +552,12 @@ def eval_testdata(
         cell_embeddings = cell_embeddings / np.linalg.norm(
             cell_embeddings, axis=1, keepdims=True
         )
-
+        cell_embeddings_next = cell_embeddings_next / np.linalg.norm(
+            cell_embeddings_next, axis=1, keepdims=True
+        )
         adata_t.obsm["X_scGPT"] = cell_embeddings
+        
+        adata_t.obsm["X_scGPT_next"] = cell_embeddings_next
         #adata_t.obsm["X_pert_pred"] = pert_preds
 
 
@@ -578,7 +600,35 @@ def eval_testdata(
         #except Exception as e:
         #    traceback.print_exc()
         #    logger.error(e)
-
+        if next_cell_prediction:
+            sc.pp.neighbors(adata_t, use_rep="X_scGPT_next")
+            sc.tl.umap(adata_t, min_dist=0.3)
+            if config.cell_type_classifier:
+                fign1 = sc.pl.umap(adata_t, color=["celltype"],
+                    title=[f"{eval_key} celltype, e{epoch}",],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                )
+                results["next_umap_celltype"] = fign1
+            if config.perturbation_classifier_weight > -1:
+                fign2 = sc.pl.umap(adata_t,color=["genotype"],
+                    title=[f"{eval_key} genotype, e{epoch}",],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                )
+                results["next_umap_genotype"] = fign2
+                fign3 = sc.pl.umap(adata_t,color=["genotype_next"],
+                    title=[f"{eval_key} next genotype, with different color e{epoch}",],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                    #palette="Set1",
+                )
+                results["next_umap_genotype_next"] = fign3
+        
+        # all other evaluations
         sc.pp.neighbors(adata_t, use_rep="X_scGPT")
         sc.tl.umap(adata_t, min_dist=0.3)
 
