@@ -1,0 +1,10 @@
+scgpt
+.DS_Store
+*.h5ad
+wandb
+save
+*__pycache__*
+.env
+data/*
+runs/*
+slurm.sh
