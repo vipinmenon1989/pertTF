@@ -28,9 +28,6 @@ WD=/scratch/ligrp/zach/pertTF
 DATA_DIR=$WD/data
 DATA_PATH=$DATA_DIR/D18_diabetes_merged_reduced.h5ad
 
-# Load WandB key
-source .env
-
 # Check if working directory exists
 if [ -d "$WD" ]; then
     echo "Directory $WD exists. Aborting setup."
@@ -61,6 +58,15 @@ else
     uv venv $WD/.venv --python 3.10
     uv pip install -r $WD/pyproject.toml
     source $WD/.venv/bin/activate
+
+    # Load WandB key
+    source $WD/.env
+
+    # Export env variables 
+    export WANDB_API_KEY
+    export WANDB_SILENT
+    export WANDB__EXECUTABLE
+    export KMP_WARNINGS
 
     # Download data
     # If we store the .h5ad files in a Google Drive folder, we can download them using gdown

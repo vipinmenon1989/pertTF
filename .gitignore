@@ -5,6 +5,6 @@ wandb
 save
 *__pycache__*
 .env
-data/*
+*.h5ad
 runs/*
 slurm.sh
