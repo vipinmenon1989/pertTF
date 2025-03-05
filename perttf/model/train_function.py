@@ -605,7 +605,7 @@ def eval_testdata(
             sc.tl.umap(adata_t, min_dist=0.3)
             if config.cell_type_classifier:
                 fign1 = sc.pl.umap(adata_t, color=["celltype"],
-                    title=[f"{eval_key} celltype, e{epoch}",],
+                    title=[f"{eval_key} celltype, e{epoch}, pred embedding",],
                     frameon=False,
                     return_fig=True,
                     show=False,
@@ -613,14 +613,14 @@ def eval_testdata(
                 results["next_umap_celltype"] = fign1
             if config.perturbation_classifier_weight > -1:
                 fign2 = sc.pl.umap(adata_t,color=["genotype"],
-                    title=[f"{eval_key} genotype, e{epoch}",],
+                    title=[f"{eval_key} genotype, e{epoch}, pred embedding",],
                     frameon=False,
                     return_fig=True,
                     show=False,
                 )
                 results["next_umap_genotype"] = fign2
                 fign3 = sc.pl.umap(adata_t,color=["genotype_next"],
-                    title=[f"{eval_key} next genotype, with different color e{epoch}",],
+                    title=[f"{eval_key} next genotype, e{epoch}, pred embedding",],
                     frameon=False,
                     return_fig=True,
                     show=False,
@@ -891,7 +891,10 @@ def wrapper_train(model, config, data_gen,
                 #if "umap" in results:
                 #    results["umap"].savefig(save_dir / f"embeddings_umap[cls]_e{best_model_epoch}.png", dpi=300,bbox_inches='tight')
 
-                save_image_types=["batch_umap","celltype_umap","genotype_umap","genotype_umap2","pred_genotype","pred_celltype","genotype_next"]
+                save_image_types=["batch_umap","celltype_umap","genotype_umap",
+                    "genotype_umap2","pred_genotype",
+                    "pred_celltype","genotype_next",
+                    "next_umap_celltype","next_umap_genotype","next_umap_genotype_next"]
                 for res_key, res_img_val in results.items():
                     if res_key in save_image_types:
                         res_img_val.savefig(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png", dpi=300,bbox_inches='tight')
