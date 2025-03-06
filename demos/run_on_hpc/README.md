@@ -19,4 +19,3 @@ The `slurm.sh` file will check whether the required software is installed and wi
 - Cloning the scGPT repository
 - Downloading the necessary data
 - Setting up the Python environment (using UV)
-    - (make sure `$HOME_DIRECTORY` reflects the directory path you clone this repository to)
