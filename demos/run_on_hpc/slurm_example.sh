@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Set output and error files
+# TODO Set output and error files
 #SBATCH -o /PATH/TO/HOME/pertTF/runs/%j/pertTF.log
 #SBATCH -e /PATH/TO/HOME/pertTF/runs/%j/pertTF.err
 
@@ -8,7 +8,7 @@
 #SBATCH -p small-gpu
 #SBATCH -N 1
 
-# Set working directory to the scratch filesystem inside Pegasus
+# TODO Set working directory to the scratch filesystem inside Pegasus
 #SBATCH -D /scratch/ligrp/USER_SCRATCH_DIRECTORY/pertTF
 
 # Job name 
@@ -18,12 +18,11 @@
 # Set time
 #SBATCH -t 1:30:00
 
-# Replace with directory pertTF repository is cloned at
-HOME_DIR=/PATH/TO/HOME/pertTF
+HOME_DIR=$SLURM_SUBMIT_DIR
 RUN_DIR=$HOME_DIR/runs/${SLURM_JOB_ID}/
 mkdir -p $RUN_DIR
 
-# Set working directory 
+# TODO Set working directory 
 WD=/scratch/ligrp/USER_SCRATCH_DIRECTORY/pertTF
 DATA_DIR=$WD/data
 DATA_PATH=$DATA_DIR/D18_diabetes_merged_reduced.h5ad
