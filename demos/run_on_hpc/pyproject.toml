@@ -1,0 +1,27 @@
+[project]
+name = "perttf"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9, <3.11"
+dependencies = [
+    "anndata>=0.10.9",
+    "cell-gears>=0.0.2",
+    "datasets>=3.2.0",
+    "gdown>=5.2.0",
+    "ipython>=8.18.1",
+    "matplotlib>=3.9.4",
+    "numpy>=2.0.2",
+    "pandas>=2.2.3",
+    "scanpy>=1.10.3",
+    "scikit-learn>=1.6.0",
+    "scipy>=1.13.1",
+    "scvi>=0.6.8",
+    "seaborn>=0.13.2",
+    "torch-geometric>=2.6.1",
+    "torch==2.3.0",
+    "torchtext>=0.18.0",
+    "torchvision>=0.18.0",
+    "typing>=3.10.0.0",
+    "wandb>=0.19.2",
+]

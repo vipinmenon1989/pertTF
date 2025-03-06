@@ -1,0 +1,11 @@
+scgpt
+.DS_Store
+*.h5ad
+wandb
+save
+*__pycache__*
+demos/run_on_hpc/.env
+data/*.h5ad
+runs/*
+demos/run_on_hpc/slurm.sh
+
