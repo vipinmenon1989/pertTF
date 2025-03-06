@@ -12,7 +12,7 @@
 #SBATCH -D /scratch/ligrp/USER_SCRATCH_DIRECTORY/pertTF
 
 # Job name 
-#SBATCH -J real_pertTF
+#SBATCH -J pertTF
 #SBATCH --export=None
 
 # Set time
@@ -24,7 +24,7 @@ RUN_DIR=$HOME_DIR/runs/${SLURM_JOB_ID}/
 mkdir -p $RUN_DIR
 
 # Set working directory 
-WD=/scratch/ligrp/zach/pertTF
+WD=/scratch/ligrp/USER_SCRATCH_DIRECTORY/pertTF
 DATA_DIR=$WD/data
 DATA_PATH=$DATA_DIR/D18_diabetes_merged_reduced.h5ad
 
@@ -46,7 +46,6 @@ else
 
     # Copy over the rest of the codebase
     cp -r $HOME_DIR/* $WD/
-    cp -r $HOME_DIR/perturb_celltype.py $WD/perturb_celltype.py
 
     # Download and set up UV (UV is a really fast Python package/project manager)
     export UV_ROOT=$WD/.uv
@@ -56,11 +55,11 @@ else
     # Create virtual environment
     uv python install 3.10
     uv venv $WD/.venv --python 3.10
-    uv pip install -r $WD/pyproject.toml
+    uv pip install -r $WD/demos/run_on_hpc/pyproject.toml
     source $WD/.venv/bin/activate
 
     # Load WandB key
-    source $WD/.env
+    source $WD/demos/run_on_hpc/.env
 
     # Export env variables 
     export WANDB_API_KEY
@@ -76,5 +75,11 @@ else
     #echo "Download complete. Files saved to: $DATA_DIR"
 fi
 
+# Enter working directory
+cd $WD
+
+# Add python dependencies to python path
+export PYTHONPATH=$(pwd)/perttf:$(pwd)/scgpt:$PYTHONPATH
+
 echo "Running scGPT on data in $DATA_DIR and saving results to $RUN_DIR"
-source $WD/.venv/bin/activate && python3 perturb_celltype.py -d $DATA_PATH -o $RUN_DIR
+source $WD/.venv/bin/activate && python3 $WD/demos/run_on_hpc/perturb_celltype.py -d $DATA_PATH -o $RUN_DIR

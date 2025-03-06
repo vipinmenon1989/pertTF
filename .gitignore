@@ -4,7 +4,8 @@ scgpt
 wandb
 save
 *__pycache__*
-.env
-*.h5ad
+demos/run_on_hpc/.env
+data/*.h5ad
 runs/*
-slurm.sh
+demos/run_on_hpc/slurm.sh
+

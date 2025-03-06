@@ -16,6 +16,13 @@ import torch
 # import scvi
 import wandb
 
+import os
+print(os.getcwd())
+# os.chdir("..")
+
+print()
+print()
+
 sys.path.insert(0, "../")
 import scgpt as scg
 from scgpt.preprocess import Preprocessor
