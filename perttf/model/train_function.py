@@ -442,6 +442,7 @@ def eval_testdata(
     genotype_to_index = train_data_dict["genotype_to_index"]
     vocab=train_data_dict['vocab']
 
+    adata_t = adata_t.copy() # make a copy
     adata_t = adata_t[adata_t.obs['celltype'].isin(cell_type_to_index)]
 
     all_counts = (
