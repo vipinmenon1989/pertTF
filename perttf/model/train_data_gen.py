@@ -194,6 +194,7 @@ def produce_training_datasets(adata_input, config,
                               next_cell_pred: Literal["identity","pert"] = "identity",
                               cell_type_to_index = None,
                               genotype_to_index = None,
+                              vocab = None,
                               logger = scg.logger):
     """
     produce training datasets for from scRNA-seq 
@@ -213,6 +214,9 @@ def produce_training_datasets(adata_input, config,
     adata_input.var["gene_name"] = adata_input.var.index.tolist()
 
     # set up these random values such that they don't get errors later on during training
+    if "batch" not in adata_input.obs.columns: 
+        batch_ids_0=random.choices( [0,1], k=adata_input.shape[0])
+        adata_input.obs["batch"]=batch_ids_0
     adata_input.obs["str_batch"] = adata_input.obs["batch"]
     adata_input.obs["str_batch"] = adata_input.obs["str_batch"].astype(str)
     adata_input.obs["batch_id"] = adata_input.obs["str_batch"].astype("category").cat.codes.values
@@ -385,10 +389,11 @@ def produce_training_datasets(adata_input, config,
         adata_sorted = adata_small.copy()
 
     # construct vocab
-    vocab = Vocab(
-            VocabPybind(genes + config.special_tokens, None)
-    )  # bidirectional lookup [gene <-> int]
-    vocab.set_default_index(vocab["<pad>"])
+    if vocab is None:
+        vocab = Vocab(
+                VocabPybind(genes + config.special_tokens, None)
+        )  # bidirectional lookup [gene <-> int]
+        vocab.set_default_index(vocab["<pad>"])
     gene_ids = np.array(vocab(genes), dtype=int)
 
     # construct tokenized data
