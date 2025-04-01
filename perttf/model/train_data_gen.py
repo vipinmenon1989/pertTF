@@ -246,7 +246,9 @@ def produce_training_datasets(adata_input, config,
 
     if genotype_to_index is None:
         genotype_to_index = {genotype: index for index, genotype in enumerate(set(adata_input.obs["genotype"].tolist()))}
-
+    else:
+        adata_input = adata_input[adata_input.obs['genotype'].isin(genotype_to_index.keys())]
+        
     n_cls = len(cell_type_to_index)
     n_perturb = len(genotype_to_index)
 
