@@ -1,12 +1,16 @@
 
 import torch
 import os
+from typing import Literal
 
-def load_pert_embedding_from_gears(gears_path, adata):
+def load_pert_embedding_from_gears(gears_path, adata, 
+                                  intersect_type : Literal["common","gears"] = "common"):
     """
     load pretrained perturbation embeddings from GEARS model
     Args:
-
+        gears_path: path to gears model
+        adata:    scanpy object
+        intersect_type:    choose the way to handle gears perturbed genes and adata.obs['genotype']. default intersect.
     Returns:
     """
     # load two required files
@@ -20,9 +24,12 @@ def load_pert_embedding_from_gears(gears_path, adata):
 
     # extract the perturbation column in adata
     a_genotype_list=adata.obs['genotype'].unique()
-    a_genotype_list
+    # a_genotype_list
 
-    common_genotype_list = a_genotype_list[a_genotype_list.isin(gears_gene_list)]
+    if intersect_type == 'common':
+        common_genotype_list = a_genotype_list[a_genotype_list.isin(gears_gene_list)]
+    else:
+        common_genotype_list = gears_gene_list
 
     print('common genes between GEARS embeddings and your adata genotypes: ' + ','.join(common_genotype_list))
     print('adata genotypes not in GEARS embeddings: ' + ','.join(a_genotype_list[~a_genotype_list.isin(gears_gene_list)]))
