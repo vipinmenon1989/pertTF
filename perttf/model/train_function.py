@@ -433,6 +433,7 @@ def eval_testdata(
     logger = scg.logger,
     epoch = 0,
     eval_key = "", # titles for evaluation
+    make_plots = True,
 ) -> Optional[Dict]:
     """evaluate the model on test dataset of adata_t"""
     model.eval()
@@ -601,129 +602,130 @@ def eval_testdata(
         #except Exception as e:
         #    traceback.print_exc()
         #    logger.error(e)
-        if next_cell_prediction:
-            sc.pp.neighbors(adata_t, use_rep="X_scGPT_next")
+        if make_plots:
+            if next_cell_prediction:
+                sc.pp.neighbors(adata_t, use_rep="X_scGPT_next")
+                sc.tl.umap(adata_t, min_dist=0.3)
+                if config.cell_type_classifier:
+                    fign1 = sc.pl.umap(adata_t, color=["celltype"],
+                        title=[f"{eval_key} celltype, e{epoch}, pred embedding",],
+                        frameon=False,
+                        return_fig=True,
+                        show=False,
+                    )
+                    results["next_umap_celltype"] = fign1
+                if config.perturbation_classifier_weight > -1:
+                    fign2 = sc.pl.umap(adata_t,color=["genotype"],
+                        title=[f"{eval_key} genotype, e{epoch}, pred embedding",],
+                        frameon=False,
+                        return_fig=True,
+                        show=False,
+                    )
+                    results["next_umap_genotype"] = fign2
+                    fign3 = sc.pl.umap(adata_t,color=["genotype_next"],
+                        title=[f"{eval_key} next genotype, e{epoch}, pred embedding",],
+                        frameon=False,
+                        return_fig=True,
+                        show=False,
+                        #palette="Set1",
+                    )
+                    results["next_umap_genotype_next"] = fign3
+            
+            # all other evaluations
+            sc.pp.neighbors(adata_t, use_rep="X_scGPT")
             sc.tl.umap(adata_t, min_dist=0.3)
-            if config.cell_type_classifier:
-                fign1 = sc.pl.umap(adata_t, color=["celltype"],
-                    title=[f"{eval_key} celltype, e{epoch}, pred embedding",],
-                    frameon=False,
-                    return_fig=True,
-                    show=False,
-                )
-                results["next_umap_celltype"] = fign1
-            if config.perturbation_classifier_weight > -1:
-                fign2 = sc.pl.umap(adata_t,color=["genotype"],
-                    title=[f"{eval_key} genotype, e{epoch}, pred embedding",],
-                    frameon=False,
-                    return_fig=True,
-                    show=False,
-                )
-                results["next_umap_genotype"] = fign2
-                fign3 = sc.pl.umap(adata_t,color=["genotype_next"],
-                    title=[f"{eval_key} next genotype, e{epoch}, pred embedding",],
-                    frameon=False,
-                    return_fig=True,
-                    show=False,
-                    #palette="Set1",
-                )
-                results["next_umap_genotype_next"] = fign3
-        
-        # all other evaluations
-        sc.pp.neighbors(adata_t, use_rep="X_scGPT")
-        sc.tl.umap(adata_t, min_dist=0.3)
-
-        if "batch" in adata_t.obs:
-            fig = sc.pl.umap(
-                adata_t,
-                color=["batch"],
-                title=[f"{eval_key} batch, e{epoch}"],
-                frameon=False,
-                return_fig=True,
-                show=False,
-            )
-            results["batch_umap"] = fig
-
-        #sc.pp.neighbors(adata_t, use_rep="X_scGPT")
-        #fig = sc.tl.umap(adata_t, min_dist=0.3)
-        #results["umap_X_scGPT"] = fig
-
-        if config.cell_type_classifier:
-            fig = sc.pl.umap(
-                adata_t,
-                color=["celltype"],
-                title=[
-                    f"{eval_key} celltype, e{epoch}",
-                ],
-                frameon=False,
-                return_fig=True,
-                show=False,
-            )
-            results["celltype_umap"] = fig
-            fig4 = sc.pl.umap(
-                adata_t,
-                color=["predicted_celltype"],
-                title=[
-                    f"{eval_key} pred celltype, e{epoch}",
-                ],
-                frameon=False,
-                return_fig=True,
-                show=False,
-                #palette="Set1",
-            )
-            results["pred_celltype"] = fig4
-
-        if config.perturbation_classifier_weight > -1:
-            fig = sc.pl.umap(
-                adata_t,
-                color=["genotype"],
-                title=[
-                    f"{eval_key} genotype, e{epoch}",
-                ],
-                frameon=False,
-                return_fig=True,
-                show=False,
-            )
-            results["genotype_umap"] = fig
-            fig2 = sc.pl.umap(
-                adata_t,
-                color=["genotype"],
-                title=[
-                    f"{eval_key} genotype e{epoch}",
-                ],
-                frameon=False,
-                return_fig=True,
-                show=False,
-                palette="tab20",
-            )
-            results["genotype_umap2"] = fig2
-
-            fig3 = sc.pl.umap(
-                adata_t,
-                color=["predicted_genotype"],
-                title=[
-                    f"{eval_key} pred genotype, with different color e{epoch}",
-                ],
-                frameon=False,
-                return_fig=True,
-                show=False,
-                #palette="Set1",
-            )
-            results["pred_genotype"] = fig3
-
-            if "genotype_next" in adata_t.obs:
-                fig5 = sc.pl.umap(
+    
+            if "batch" in adata_t.obs:
+                fig = sc.pl.umap(
                     adata_t,
-                    color=["genotype_next"],
+                    color=["batch"],
+                    title=[f"{eval_key} batch, e{epoch}"],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                )
+                results["batch_umap"] = fig
+    
+            #sc.pp.neighbors(adata_t, use_rep="X_scGPT")
+            #fig = sc.tl.umap(adata_t, min_dist=0.3)
+            #results["umap_X_scGPT"] = fig
+    
+            if config.cell_type_classifier:
+                fig = sc.pl.umap(
+                    adata_t,
+                    color=["celltype"],
                     title=[
-                        f"{eval_key} next genotype, with different color e{epoch}",
+                        f"{eval_key} celltype, e{epoch}",
+                    ],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                )
+                results["celltype_umap"] = fig
+                fig4 = sc.pl.umap(
+                    adata_t,
+                    color=["predicted_celltype"],
+                    title=[
+                        f"{eval_key} pred celltype, e{epoch}",
                     ],
                     frameon=False,
                     return_fig=True,
                     show=False,
                     #palette="Set1",
                 )
-                results["genotype_next"] = fig5
+                results["pred_celltype"] = fig4
+    
+            if config.perturbation_classifier_weight > -1:
+                fig = sc.pl.umap(
+                    adata_t,
+                    color=["genotype"],
+                    title=[
+                        f"{eval_key} genotype, e{epoch}",
+                    ],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                )
+                results["genotype_umap"] = fig
+                fig2 = sc.pl.umap(
+                    adata_t,
+                    color=["genotype"],
+                    title=[
+                        f"{eval_key} genotype e{epoch}",
+                    ],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                    palette="tab20",
+                )
+                results["genotype_umap2"] = fig2
+    
+                fig3 = sc.pl.umap(
+                    adata_t,
+                    color=["predicted_genotype"],
+                    title=[
+                        f"{eval_key} pred genotype, with different color e{epoch}",
+                    ],
+                    frameon=False,
+                    return_fig=True,
+                    show=False,
+                    #palette="Set1",
+                )
+                results["pred_genotype"] = fig3
+    
+                if "genotype_next" in adata_t.obs:
+                    fig5 = sc.pl.umap(
+                        adata_t,
+                        color=["genotype_next"],
+                        title=[
+                            f"{eval_key} next genotype, with different color e{epoch}",
+                        ],
+                        frameon=False,
+                        return_fig=True,
+                        show=False,
+                        #palette="Set1",
+                    )
+                    results["genotype_next"] = fig5
 
     results['adata'] = adata_t
     return results
