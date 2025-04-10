@@ -72,3 +72,70 @@ def load_pert_embedding_to_model(o_model, model_weights):
         raise ValueError(f"model_weights_tensor.shape {model_weights_tensor.shape} does not equal to o_model.pert_encoder.embedding.weight.shape {o_model.pert_encoder.embedding.weight.shape}")
     o_model.pert_encoder.embedding.weight.data = model_weights_tensor # torch.tensor(gears_model_subset,dtype=torch.double)
     return o_model
+
+
+def generate_pert_embeddings(adata_target, adata_wt, candidate_genes,
+                             model, gene_ids, cell_type_to_index, genotype_to_index, vocab,
+                             config, device,
+                             n_expands_per_epoch = 50,
+                             n_epoch = 4, ):
+    """
+    Generate perturbation embeddings for a target dataset.
+
+    Args:
+      adata_target: AnnData object of the target dataset.
+      adata_wt: AnnData object of the wildtype dataset.
+      candidate_genes: List of candidate genes for perturbation.
+    """
+    # expand
+    adata_bwmerge=sc.concat([adata_target]*n_expands_per_epoch + [adata_wt],axis=0)
+    cell_emb_data_all = None
+    perturb_info_all = None
+
+    cs_matrix_res = np.zeros((adata_wt.shape[0], adata_target.shape[0] * n_expands_per_epoch, n_epoch))
+    # loop over epochs
+    for n_round in range(n_epoch):
+        # assign genoytpe_next
+        gt_next_1 = np.random.choice(list(candidate_genes), size = adata_target.shape[0] * n_expands_per_epoch)
+        #adata_test_gw_wtmerge.obs.loc[adata_test_gw_wtmerge.obs['genotype']=='WT' ,'genotype_next'].value_counts()
+        gt_next_2 = ['WT']*adata_wt.shape[0]
+        gt_next = np.concatenate([gt_next_1,gt_next_2])
+        adata_bwmerge.obs[ 'genotype_next'] = gt_next
+
+        # feed into model
+        model.to(device)
+        eval_results_0 = eval_testdata(model, adata_bwmerge, gene_ids,
+                                    train_data_dict={"cell_type_to_index":cell_type_to_index,
+                                                      "genotype_to_index":genotype_to_index,
+                                                      "vocab":vocab,},
+                                    config = config,
+                                    make_plots=False)
+        #
+        a_eva=eval_results_0['adata']
+        cell_emb_data=a_eva.obsm['X_scGPT_next'] #[:10000,:]
+        perturb_info=a_eva.obs[['genotype','genotype_next']]
+
+        perturb_info['round']=n_round
+        perturb_info['type']=['target']*adata_target.shape[0]*n_expands_per_epoch + ['wildtype']*adata_wt.shape[0]
+
+        # calculate cosine similarity
+        from sklearn.metrics.pairwise import cosine_similarity
+
+        # Calculate cosine similarity
+        #adata_eva_copy_othergenes
+        cell_emb_data_treat = cell_emb_data[perturb_info['type']=='target']
+
+        cell_emb_data_ref = cell_emb_data[perturb_info['type']=='wildtype']
+        # Calculate cosine similarity
+        cosine_sim_matrix = cosine_similarity(cell_emb_data_ref, cell_emb_data_treat)
+        cs_matrix_res[:,:,n_round] = cosine_sim_matrix
+        if cell_emb_data_all is None:
+            cell_emb_data_all = cell_emb_data
+            perturb_info_all = perturb_info
+
+        else:
+            cell_emb_data_all = np.concatenate([cell_emb_data_all, cell_emb_data], axis=0)
+            perturb_info_all = pd.concat([perturb_info_all, perturb_info], axis=0)
+
+
+    return cell_emb_data_all, perturb_info_all, cs_matrix_res, a_eva
