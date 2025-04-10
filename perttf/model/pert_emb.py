@@ -85,12 +85,26 @@ def generate_pert_embeddings(adata_target, adata_wt, candidate_genes,
                              n_expands_per_epoch = 50,
                              n_epoch = 4, ):
     """
-    Generate perturbation embeddings for a target dataset.
+    Generate perturbation embeddings for a target cells, and calculate cosine similarity between all target cells vs wild-type cells
 
     Args:
-      adata_target: AnnData object of the target dataset.
-      adata_wt: AnnData object of the wildtype dataset.
+      adata_target: AnnData object of the target cells, where the perturbation will be based on.
+      adata_wt: AnnData object of the wildtype cells. 
       candidate_genes: List of candidate genes for perturbation.
+      model: 
+      gene_ids:
+      cell_type_to_index:
+      genotype_to_index:
+      vocab:
+      config:
+      device:
+      n_expands_per_epoch: the number of duplicates in adata_target to be used for perturbation simulation. For smaller number of target cells, set it to a big number
+      n_epoch:  the number of rounds that perturbaiton prediction is performed
+    Returns:
+      cell_emb_data_all: generated cell embeddings, a 2-d np array. Row size: (adata_target.n_obs*n_expands_per_epoch + adata_wt.n_obs)*n_epoch. Column size: (emb_size of the model)
+      perturb_info_all: a Pandas dataframe describing the cell information in cell_emb_data_all
+      cs_matrix_res: cosine similarity matrix, a 2-d np array. Size: adata_wt.n_obs * (adata_target.n_obs*n_expands_per_epoch) * n_epoch
+      a_eva: evaluated AnnData object from the last round of evaluation
     """
     # expand
     adata_bwmerge=sc.concat([adata_target]*n_expands_per_epoch + [adata_wt],axis=0)
@@ -142,5 +156,26 @@ def generate_pert_embeddings(adata_target, adata_wt, candidate_genes,
             cell_emb_data_all = np.concatenate([cell_emb_data_all, cell_emb_data], axis=0)
             perturb_info_all = pd.concat([perturb_info_all, perturb_info], axis=0)
 
-
+    perturb_info_all.reset_index(inplace=True)
     return cell_emb_data_all, perturb_info_all, cs_matrix_res, a_eva
+
+
+def calculate_avg_cosine_similarity(input_mat,pd_pert_f):
+    """
+    Calculate average cosine similarity from a given cosine similarity matrix of size (n_ctrl,n_cell,n_round),
+     and a pandas dataframe pd_pert_tf of size (nctrl+n_cell)*n_round
+    """
+    # Calculate cosine similarity
+    cs_nx1 = np.sum(input_mat, axis=0)/input_mat.shape[0]
+
+
+    # prompt: convert cs_nx1 to a 1-dimension array
+
+    cs_nx1_1d = cs_nx1.flatten('F')
+
+    perturb_f_p=pd_pert_f[ pd_pert_f['type'] == 'target']
+    perturb_f_p.shape
+
+    perturb_f_p['cosine_sim_matrix_column_avg'] = cs_nx1_1d
+    perturb_f_p.reset_index(inplace=True)
+    return perturb_f_p
