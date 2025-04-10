@@ -3,6 +3,11 @@ import torch
 import os
 from typing import Literal
 
+import scanpy as sc
+import numpy as np
+import pandas as pd
+from perttf.model.train_function import eval_testdata
+
 def load_pert_embedding_from_gears(gears_path, adata, 
                                   intersect_type : Literal["common","gears"] = "common"):
     """
