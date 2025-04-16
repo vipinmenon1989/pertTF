@@ -30,14 +30,20 @@ def load_pert_embedding_from_gears(gears_path, adata,
     # extract the perturbation column in adata
     a_genotype_list=adata.obs['genotype'].unique()
     # a_genotype_list
+    import numpy as np
 
     if intersect_type == 'common':
-        common_genotype_list = a_genotype_list[a_genotype_list.isin(gears_gene_list)]
+        #common_genotype_list = a_genotype_list[a_genotype_list.isin(gears_gene_list)]
+        common_genotype_list = np.intersect1d(a_genotype_list, gears_gene_list)
+    elif intersect_type == 'gears':
+        common_genotype_list = gears_gene_list
     else:
         common_genotype_list = gears_gene_list
 
     print('common genes between GEARS embeddings and your adata genotypes: ' + ','.join(common_genotype_list))
-    print('adata genotypes not in GEARS embeddings: ' + ','.join(a_genotype_list[~a_genotype_list.isin(gears_gene_list)]))
+    #print('adata genotypes not in GEARS embeddings: ' + ','.join(a_genotype_list[~a_genotype_list.isin(gears_gene_list)]))
+    print('adata genotypes not in GEARS embeddings: ' + ','.join([x for x in a_genotype_list if x not in gears_gene_list]))
+    #print('adata genotypes not in GEARS embeddings: ' + ','.join(list(set(a_genotype_list) - set(gears_gene_list))))
 
 
     import numpy as np
