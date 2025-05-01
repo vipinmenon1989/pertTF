@@ -11,6 +11,7 @@ import copy
 #print(sys.executable)
 
 def generate_config(parameter_dict,
+        project_name = "scGPT",
         wandb_mode : Literal["disabled","online","offline"] = "disabled"):
     # If it's not the desired interpreter, set the WANDB__EXECUTABLE environment variable
     # For example, if you want to use Python 3.8:
@@ -31,7 +32,7 @@ def generate_config(parameter_dict,
     if use_wandb:
       run = wandb.init(
           config=parameter_dict,
-          project="scGPT",
+          project=project_name,
           reinit=True,
           settings=wandb.Settings(start_method="fork"),
           #mode="online",
