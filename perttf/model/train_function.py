@@ -45,6 +45,8 @@ def train(model: nn.Module,
     criterion_cls = nn.CrossEntropyLoss()
     criterion_pert = nn.CrossEntropyLoss()
     criterion_adv = nn.CrossEntropyLoss()  # consider using label smoothing
+    criterion_ps = nn.MSELoss() # this is the loss for predicting PS scores
+
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -84,6 +86,10 @@ def train(model: nn.Module,
         celltype_labels_next = batch_data["celltype_labels_next"].to(device) #added
         perturbation_labels_next = batch_data["perturbation_labels_next"].to(device) #added
 
+        if config.ps_weight >0:
+            ps_score = batch_data["ps_score"].to(device)
+            ps_score_next = batch_data["ps_score_next"].to(device)
+
         src_key_padding_mask = input_gene_ids.eq(vocab[config.pad_token])
         with torch.cuda.amp.autocast(enabled=config.amp):
             #import pdb; pdb.set_trace()
@@ -99,6 +105,7 @@ def train(model: nn.Module,
                 ECS=config.ecs_thres > 0,
                 CLS=config.cell_type_classifier,
                 PERTPRED = config.perturbation_classifier_weight > 0,
+                PSPRED = config.ps_weight >0,
             )
 
             masked_positions = input_values.eq(config.mask_value)  # the postions to predict
@@ -178,7 +185,14 @@ def train(model: nn.Module,
                 loss_pert_next = criterion_pert(output_dict["pert_output_next"], perturbation_labels_next)
                 loss = loss + config.perturbation_classifier_weight * config.next_weight * loss_pert_next
                 metrics_to_log.update({"train/pert_next": loss_pert_next.item()})
-
+            if config.ps_weight >0:
+                loss_ps = criterion_ps(output_dict["ps_output"], ps_score)
+                loss = loss + config.ps_weight * loss_ps
+                metrics_to_log.update({"train/ps": loss_ps.item()})
+                loss_ps_next = criterion_ps(output_dict["ps_output_next"], ps_score_next)
+                loss = loss + config.ps_weight * loss_ps_next * config.next_weight
+                metrics_to_log.update({"train/ps_next": loss_ps_next.item()})
+                
             if config.ecs_thres > 0:
                 loss_ecs = config.ecs_weight  * output_dict["loss_ecs"]
                 loss = loss + loss_ecs
@@ -220,6 +234,7 @@ def train(model: nn.Module,
                 CLS=config.cell_type_classifier,
                 #CCE=config.CCE,
                 PERTPRED = config.perturbation_classifier_weight > 0,
+                PSPRED = config.ps_weight >0,
                 #do_sample=config.do_sample_in_train,
                 #generative_training=False
             )
@@ -314,6 +329,7 @@ def define_wandb_metrcis():
     wandb.define_metric("valid/dab", summary="min", step_metric="epoch")
     wandb.define_metric("valid/cls", summary="min", step_metric="epoch")
     wandb.define_metric("valid/pert", summary="min", step_metric="epoch")
+    wandb.define_metric("valid/ps", summary="min", step_metric="epoch")
     wandb.define_metric("valid/sum_mse_dab", summary="min", step_metric="epoch")
     wandb.define_metric("test/avg_bio", summary="max")
 
@@ -332,7 +348,8 @@ def evaluate(model: nn.Module,
     criterion_cls = nn.CrossEntropyLoss()
     criterion_pert = nn.CrossEntropyLoss()
     criterion_adv = nn.CrossEntropyLoss()  # consider using label smoothing
-
+    criterion_ps = nn.MSELoss() # this is the loss for predicting PS scores
+                
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -345,6 +362,7 @@ def evaluate(model: nn.Module,
     total_dab = 0.0
     total_cls = 0.0
     total_pert = 0.0
+    total_ps = 0.0
     total_num = 0
     with torch.no_grad():
         for batch_data in loader:
@@ -355,7 +373,8 @@ def evaluate(model: nn.Module,
             batch_labels = batch_data["batch_labels"].to(device)
             celltype_labels = batch_data["celltype_labels"].to(device) #added
             perturbation_labels = batch_data["perturbation_labels"].to(device) #added
-
+            ps_score = batch_data["ps_score"].to(device) #added
+            
             src_key_padding_mask = input_gene_ids.eq(vocab[config.pad_token])
             with torch.cuda.amp.autocast(enabled=config.amp):
                 output_dict = model(
@@ -368,6 +387,7 @@ def evaluate(model: nn.Module,
                     ECS=config.ecs_thres > 0,
                     CLS=config.cell_type_classifier,
                     PERTPRED = config.perturbation_classifier_weight > 0,
+                    PSPRED = config.ps_weight>0,
                 )
                 output_values = output_dict["mlm_output"]
 
@@ -391,7 +411,11 @@ def evaluate(model: nn.Module,
                 if config.perturbation_classifier_weight > 0:
                     loss_pert = criterion_pert(output_dict["pert_output"], perturbation_labels)
                     # = loss + loss_pert
-
+                
+                if config.ps_weight > 0:
+                    loss_ps = criterion_ps(output_dict["ps_output"], ps_score)
+                    # = loss + loss_pert
+            
             total_loss += loss.item() * len(input_gene_ids)
             total_loss_next += loss_mse_next.item() * len(input_gene_ids)
             total_error += masked_relative_error(output_values, target_values, masked_positions).item() * len(input_gene_ids)
@@ -402,6 +426,8 @@ def evaluate(model: nn.Module,
                 total_cls += loss_cls.item() * len(input_gene_ids)
             if config.perturbation_classifier_weight > 0:
                 total_pert += loss_pert.item() * len(input_gene_ids)
+            if config.ps_weight > 0:
+                total_ps += loss_ps.item() * len(input_gene_ids)
             total_num += len(input_gene_ids)
 
     wandb.log(
@@ -413,6 +439,7 @@ def evaluate(model: nn.Module,
             "valid/dab": total_dab / total_num,
             "valid/cls": total_cls / total_num,
             "valid/pert": total_pert / total_num,
+            "valid/ps": total_ps / total_num,
             "valid/sum_mse_dab": (total_loss + config.dab_weight * total_dab)/ total_num,
             "epoch": epoch,
         },
