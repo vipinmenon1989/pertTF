@@ -22,7 +22,8 @@ from scgpt import SubsetsBatchSampler
 def add_pred_layer(adata: AnnData, 
         binned_layer_key: Optional[str] = 'X_binned', 
         next_layer_key: Optional[str] = 'X_binned_next',
-        next_cell_pred: Literal["identity","pert"] = "identity") -> Dict:
+        next_cell_pred: Literal["identity","pert"] = "identity",
+        ps_columns: Optional[str] = None) -> Dict:
     """
     format controls the different input value wrapping, including categorical
     binned style, fixed-sum normalized counts, log1p fixed-sum normalized counts, etc.
@@ -73,7 +74,18 @@ def add_pred_layer(adata: AnnData,
     if next_cell_pred == "identity":
         perturbation_labels_next = perturbation_labels_0
         input_layers=adata_p.layers[binned_layer_key] #.copy()
-        return (all_counts_0,input_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
+        retdict={
+            'expmat': all_counts_0,
+            'expmat_next': input_layers,
+            'celllabel': celltypes_labels_0,
+            'pertlabel': perturbation_labels_0, 
+            'batchid': batch_ids_0, 
+            'celllabel_next': celltypes_labels_next, 
+            'pertlabel_next': perturbation_labels_next, 
+            'adata': adata_p,
+        }
+        return retdict
+        #return (all_counts_0,input_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
     
     # predict the next cell type
     obsf=adata.obs
@@ -113,7 +125,19 @@ def add_pred_layer(adata: AnnData,
 
     perturbation_labels_next = target_pert
     perturbation_labels_next = np.array(perturbation_labels_next)
-    return (all_counts_0,target_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
+    # instead of returning a tuplex, return a dictionary 
+    retdict={
+        'expmat': all_counts_0,
+        'expmat_next': target_layers,
+        'celllabel': celltypes_labels_0,
+        'pertlabel': perturbation_labels_0, 
+        'batchid': batch_ids_0, 
+        'celllabel_next': celltypes_labels_next, 
+        'pertlabel_next': perturbation_labels_next, 
+        'adata': adata_p,
+    }
+    return retdict
+    #return (all_counts_0,target_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
 
 
 def add_pred_layer_old(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
@@ -256,11 +280,17 @@ def produce_training_datasets(adata_input, config,
         # predict the next state of a cell
         #next_counts_0,adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
         print(f'rounds: {ni}')
-        (all_counts_0,next_counts_0, 
-            celltypes_labels_0, perturbation_labels_0, 
-            batch_ids_0, 
-            celltypes_labels_next, perturbation_labels_next, 
-            adata_0) = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        #(all_counts_0,next_counts_0, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next,  adata_0) = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        add_l_ret = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        
+        all_counts_0 = add_l_ret['expmat']
+        next_counts_0 = add_l_ret['expmat_next'] 
+        celltypes_labels_0 = add_l_ret['celllabel'] 
+        perturbation_labels_0 = add_l_ret['pertlabel'] 
+        batch_ids_0 = add_l_ret['batchid'] 
+        celltypes_labels_next = add_l_ret['celllabel_next'] 
+        perturbation_labels_next = add_l_ret['pertlabel_next']  
+        adata_0 = add_l_ret['adata']
         
         print('adding next layers...')
         #all_counts_0 = (adata_0.layers[input_layer_key].A if issparse(adata_0.layers[input_layer_key]) else adata_0.layers[input_layer_key])
