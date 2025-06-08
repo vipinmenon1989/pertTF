@@ -46,7 +46,7 @@ def train(model: nn.Module,
     criterion_pert = nn.CrossEntropyLoss()
     criterion_adv = nn.CrossEntropyLoss()  # consider using label smoothing
     criterion_ps = nn.MSELoss() # this is the loss for predicting PS scores
-
+    #criterion_ps = nn.CrossEntropyLoss()
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -56,6 +56,7 @@ def train(model: nn.Module,
     total_mse_next, total_gepc_next = 0.0, 0.0
     total_error, total_error_next = 0.0, 0.0
     total_dab, total_adv_E, total_adv_D = 0.0, 0.0, 0.0
+    total_cls, total_pert, total_ps = 0.0, 0.0, 0.0
     log_interval = config.log_interval
     start_time = time.time()
 
@@ -187,6 +188,8 @@ def train(model: nn.Module,
                 metrics_to_log.update({"train/pert_next": loss_pert_next.item()})
             if config.ps_weight >0:
                 loss_ps = criterion_ps(output_dict["ps_output"], ps_score)
+                #import pdb; pdb.set_trace()
+                #print(f"loss_ps: {loss_ps}")
                 loss = loss + config.ps_weight * loss_ps
                 metrics_to_log.update({"train/ps": loss_ps.item()})
                 loss_ps_next = criterion_ps(output_dict["ps_output_next"], ps_score_next)
@@ -203,6 +206,8 @@ def train(model: nn.Module,
                 metrics_to_log.update({"train/dab": loss_dab.item()})
 
         model.zero_grad()
+        #print(f"loss: {loss}")
+        #import pdb; pdb.set_trace()
         scaler.scale(loss).backward()
         scaler.unscale_(optimizer)
         with warnings.catch_warnings(record=True) as w:
@@ -282,6 +287,10 @@ def train(model: nn.Module,
         total_adv_E += loss_adv_E.item() if config.ADV else 0.0
         total_adv_D += loss_adv_D.item() if config.ADV else 0.0
 
+        total_cls += loss_cls.item() if config.cell_type_classifier else 0.0
+        total_pert += loss_pert.item() if config.perturbation_classifier_weight > 0 else 0.0
+        total_ps += loss_ps.item() if config.ps_weight >0 else 0.0
+
         if batch % log_interval == 0 and batch > 0:
             lr = scheduler.get_last_lr()[0]
             ms_per_batch = (time.time() - start_time) * 1000 / log_interval
@@ -295,6 +304,9 @@ def train(model: nn.Module,
             cur_dab = total_dab / log_interval if config.dab_weight >0 else 0.0
             cur_adv_E = total_adv_E / log_interval if config.ADV else 0.0
             cur_adv_D = total_adv_D / log_interval if config.ADV else 0.0
+            cur_cls = total_cls / log_interval if config.cell_type_classifier else 0.0
+            cur_pert = total_pert / log_interval if config.perturbation_classifier_weight > 0 else 0.0
+            cur_ps = total_ps / log_interval if config.ps_weight >0 else 0.0
             # ppl = math.exp(cur_loss)
             if logger is not None:
                 logger.info(
@@ -302,6 +314,7 @@ def train(model: nn.Module,
                     f"lr {lr:05.8f} | ms/batch {ms_per_batch:5.2f} | "
                     f"loss {cur_loss:5.2f} | mse {cur_mse:5.2f} | mre {cur_error:5.2f} |"
                     f"mse_next {cur_mse_next:5.2f} | mre_next {cur_error_next:5.2f} |"
+                    f"cls {cur_cls:5.2f} | pert {cur_pert:5.2f} | ps {cur_ps:5.2f} |"
                     + (f"gepc {cur_gepc:5.2f} |" if config.GEPC else "")
                     + (f"gepc_next {cur_gepc_next:5.2f} |" if config.GEPC else "")
                     + (f"dab {cur_dab:5.2f} |" if config.dab_weight >0 else "")

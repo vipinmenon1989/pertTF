@@ -77,7 +77,7 @@ def add_pred_layer(adata: AnnData,
         print('total number of columns used for PS modeling:'+str(len(ps_exist_c)))
         ps_matrix=adata_p.obs[ps_exist_c].tolist()
     else:
-        ps_matrix= [0] * adata_p.shape[0] # a shape of 0
+        ps_matrix= [0.0] * adata_p.shape[0] # a shape of 0
     #
     if next_cell_pred == "identity":
         perturbation_labels_next = perturbation_labels_0
@@ -614,8 +614,8 @@ def prepare_data(
     tensor_perturbation_labels_train_next = torch.from_numpy(train_perturbation_labels_next).long()#added
     tensor_perturbation_labels_valid_next = torch.from_numpy(valid_perturbation_labels_next).long()#added
 
-    tensor_ps_train=torch.from_numpy(ps_train).long()
-    tensor_ps_valid=torch.from_numpy(ps_valid).long()
+    tensor_ps_train=torch.from_numpy(ps_train).float()
+    tensor_ps_valid=torch.from_numpy(ps_valid).float()
 
     tensor_ps_train_next=torch.clone(tensor_ps_train) # now, duplicate ps for next
     tensor_ps_valid_next=torch.clone(tensor_ps_valid)
