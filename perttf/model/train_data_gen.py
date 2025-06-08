@@ -667,7 +667,7 @@ def prepare_data(
         "perturbation_labels": tensor_perturbation_labels_valid, #added
         "celltype_labels_next": tensor_celltype_labels_valid_next, #added
         "perturbation_labels_next": tensor_perturbation_labels_valid_next, #added
-        "ps: tensor_ps_valid,
+        "ps": tensor_ps_valid,
     }
 
     return train_data_pt, valid_data_pt
