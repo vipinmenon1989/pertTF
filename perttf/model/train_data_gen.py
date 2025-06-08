@@ -617,6 +617,9 @@ def prepare_data(
     tensor_ps_train=torch.from_numpy(ps_train).long()
     tensor_ps_valid=torch.from_numpy(ps_valid).long()
 
+    tensor_ps_train_next=torch.clone(tensor_ps_train) # now, duplicate ps for next
+    tensor_ps_valid_next=torch.clone(tensor_ps_valid)
+
     if sort_seq_batch:
         train_sort_ids = np.argsort(train_batch_labels)
         input_gene_ids_train = input_gene_ids_train[train_sort_ids]
@@ -630,6 +633,7 @@ def prepare_data(
         tensor_celltype_labels_train_next = tensor_celltype_labels_train_next[train_sort_ids]#added
         tensor_perturbation_labels_train_next = tensor_perturbation_labels_train_next[train_sort_ids]#added
         tensor_ps_train=tensor_ps_train[train_sort_ids] # added
+        tensor_ps_train_next=tensor_ps_train_next[train_sort_ids]
 
         valid_sort_ids = np.argsort(valid_batch_labels)
         input_gene_ids_valid = input_gene_ids_valid[valid_sort_ids]
@@ -643,6 +647,7 @@ def prepare_data(
         tensor_celltype_labels_valid_next = tensor_celltype_labels_valid_next[valid_sort_ids] #added
         tensor_perturbation_labels_valid_next = tensor_perturbation_labels_valid_next[valid_sort_ids] #added
         tensor_ps_valid=tensor_ps_valid[valid_sort_ids] #added
+        tensor_ps_valid_next=tensor_ps_valid_next[valid_sort_ids]
 
     train_data_pt = {
         "gene_ids": input_gene_ids_train,
@@ -655,6 +660,7 @@ def prepare_data(
         "celltype_labels_next": tensor_celltype_labels_train_next, #added
         "perturbation_labels_next": tensor_perturbation_labels_train_next, #added
         "ps": tensor_ps_train,
+        "ps_next": tensor_ps_train_next,
 
     }
     valid_data_pt = {
@@ -668,6 +674,7 @@ def prepare_data(
         "celltype_labels_next": tensor_celltype_labels_valid_next, #added
         "perturbation_labels_next": tensor_perturbation_labels_valid_next, #added
         "ps": tensor_ps_valid,
+        "ps_next": tensor_ps_valid_next,
     }
 
     return train_data_pt, valid_data_pt

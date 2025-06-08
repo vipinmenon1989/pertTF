@@ -87,8 +87,8 @@ def train(model: nn.Module,
         perturbation_labels_next = batch_data["perturbation_labels_next"].to(device) #added
 
         if config.ps_weight >0:
-            ps_score = batch_data["ps_score"].to(device)
-            ps_score_next = batch_data["ps_score_next"].to(device)
+            ps_score = batch_data["ps"].to(device)
+            ps_score_next = batch_data["ps_next"].to(device) # 
 
         src_key_padding_mask = input_gene_ids.eq(vocab[config.pad_token])
         with torch.cuda.amp.autocast(enabled=config.amp):
