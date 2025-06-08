@@ -150,6 +150,7 @@ class PerturbationTFModel(TransformerModel):
     def __init__(self,
                  n_pert: int,
                  nlayers_pert: int,
+                 n_ps: int,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         # add perturbation encoder
@@ -175,7 +176,7 @@ class PerturbationTFModel(TransformerModel):
         self.n_cls = kwargs.get("n_cls") if "n_cls" in kwargs else 1
 
         # added: adding PS score decoder
-        self.n_ps = kwargs.get("n_ps") if "n_ps" in kwargs else 0
+        #self.n_ps = kwargs.get("n_ps") if "n_ps" in kwargs else 0
 
         if self.n_ps > 0:
             self.ps_decoder = PSDecoder(d_model, self.n_ps, nlayers = nlayers_pert)
@@ -447,8 +448,8 @@ class PerturbationTFModel(TransformerModel):
 
         # PS score prediction
         if PSPRED and self.ps_decoder is not None:
-            output["PS_output"] = self.ps_decoder(cell_emb)
-            output["PS_output_next"] = self.ps_decoder(cell_emb_next)  # (batch, n_cls)
+            output["ps_output"] = self.ps_decoder(cell_emb)
+            output["ps_output_next"] = self.ps_decoder(cell_emb_next)  # (batch, n_cls)
         
         return output
 
