@@ -458,7 +458,7 @@ def evaluate(model: nn.Module,
         },
     )
 
-    return total_loss / total_num, total_loss_next / total_num, total_error / total_num, total_error_next / total_num, total_dab / total_num, total_cls / total_num, total_pert / total_num
+    return total_loss / total_num, total_loss_next / total_num, total_error / total_num, total_error_next / total_num, total_dab / total_num, total_cls / total_num, total_pert / total_num, total_ps / total_num
 
 
 def eval_testdata(
@@ -882,7 +882,7 @@ def wrapper_train(model, config, data_gen,
                 epoch = epoch,
                 logger = logger,
             )
-        val_loss, val_loss_next, val_mre, val_mre_next, val_dab, val_cls, val_pert = evaluate(
+        val_loss, val_loss_next, val_mre, val_mre_next, val_dab, val_cls, val_pert, val_ps = evaluate(
             model,
             loader=valid_loader,
             config=config,
@@ -897,6 +897,7 @@ def wrapper_train(model, config, data_gen,
                 f"valid loss/mse {val_loss:5.4f} | mre {val_mre:5.4f} | "
                 f"valid loss/mse_next {val_loss_next:5.4f} | mre_next {val_mre_next:5.4f} | "
                 f"valid dab {val_dab:5.4f} | valid cls {val_cls:5.4f} | valid pert {val_pert:5.4f} |"
+                f"valid ps {val_ps:5.4f} |"
             )
             logger.info("-" * 89)
 
