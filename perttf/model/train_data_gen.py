@@ -75,7 +75,8 @@ def add_pred_layer(adata: AnnData,
     if ps_columns is not None:
         ps_exist_c=[x for x in ps_columns if x in adata_p.obs.columns]
         print('total number of columns used for PS modeling:'+str(len(ps_exist_c)))
-        ps_matrix=adata_p.obs[ps_exist_c].tolist()
+        ps_matrix=adata_p.obs[ps_exist_c].values
+        ps_matrix=np.nan_to_num(ps_matrix,nan=0.0)
     else:
         ps_matrix= [0.0] * adata_p.shape[0] # a shape of 0
     #
@@ -229,6 +230,7 @@ def produce_training_datasets(adata_input, config,
                               cell_type_to_index = None,
                               genotype_to_index = None,
                               vocab = None,
+                              ps_columns = None,
                               logger = scg.logger):
     """
     produce training datasets for from scRNA-seq 
@@ -293,7 +295,7 @@ def produce_training_datasets(adata_input, config,
         #next_counts_0,adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
         print(f'rounds: {ni}')
         #(all_counts_0,next_counts_0, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next,  adata_0) = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
-        add_l_ret = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        add_l_ret = add_pred_layer(adata_input,next_cell_pred=next_cell_pred, ps_columns = ps_columns)
         
         all_counts_0 = add_l_ret['expmat']
         next_counts_0 = add_l_ret['expmat_next'] 
