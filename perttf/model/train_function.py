@@ -373,7 +373,7 @@ def evaluate(model: nn.Module,
             batch_labels = batch_data["batch_labels"].to(device)
             celltype_labels = batch_data["celltype_labels"].to(device) #added
             perturbation_labels = batch_data["perturbation_labels"].to(device) #added
-            ps_score = batch_data["ps_score"].to(device) #added
+            ps_score = batch_data["ps"].to(device) #added
             
             src_key_padding_mask = input_gene_ids.eq(vocab[config.pad_token])
             with torch.cuda.amp.autocast(enabled=config.amp):
