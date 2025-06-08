@@ -177,7 +177,7 @@ class PerturbationTFModel(TransformerModel):
 
         # added: adding PS score decoder
         #self.n_ps = kwargs.get("n_ps") if "n_ps" in kwargs else 0
-
+        self.n_ps = n_ps
         if self.n_ps > 0:
             self.ps_decoder = PSDecoder(d_model, self.n_ps, nlayers = nlayers_pert)
         else:
