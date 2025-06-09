@@ -78,6 +78,7 @@ def add_pred_layer(adata: AnnData,
         ps_matrix=adata_p.obs[ps_exist_c].values
         ps_matrix=np.nan_to_num(ps_matrix,nan=0.0)
     else:
+        ps_exist_c=["PS"]
         ps_matrix= [0.0] * adata_p.shape[0] # a shape of 0
     #
     if next_cell_pred == "identity":
@@ -93,6 +94,7 @@ def add_pred_layer(adata: AnnData,
             'pertlabel_next': perturbation_labels_next, 
             'adata': adata_p,
             'ps': ps_matrix,
+            'ps_names': ps_exist_c,
         }
         return retdict
         #return (all_counts_0,input_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
@@ -146,6 +148,7 @@ def add_pred_layer(adata: AnnData,
         'pertlabel_next': perturbation_labels_next, 
         'adata': adata_p,
         'ps':ps_matrix,
+        'ps_names': ps_exist_c,
     }
     return retdict
     #return (all_counts_0,target_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
@@ -306,6 +309,7 @@ def produce_training_datasets(adata_input, config,
         perturbation_labels_next = add_l_ret['pertlabel_next']  
         adata_0 = add_l_ret['adata']
         ps_0 = add_l_ret['ps']
+        ps_names = add_l_ret['ps_names']
         
         print('adding next layers...')
         #all_counts_0 = (adata_0.layers[input_layer_key].A if issparse(adata_0.layers[input_layer_key]) else adata_0.layers[input_layer_key])
@@ -541,6 +545,7 @@ def produce_training_datasets(adata_input, config,
         'tokenized_valid_next': tokenized_valid_next,
         'ps_train': ps_train,
         'ps_valid': ps_valid,
+        'ps_names': ps_names,
     }
     return ret_dict
 
