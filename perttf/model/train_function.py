@@ -915,7 +915,9 @@ def wrapper_train(model, config, data_gen,
             if logger is not None:
                 logger.info(f"Saving model to {save_dir}")
             torch.save(best_model.state_dict(), save_dir / f"model_e{best_model_epoch}.pt")
-
+            # change images of each epoch to subfolder
+            save_dir2=save_dir / f'e{epoch}_imgs'
+            save_dir2.mkdir(parents=True, exist_ok=True)
             # eval on testdata
             metrics_to_log={}
             for eval_dict_key, eval_adata in eval_adata_dict.items():
@@ -942,9 +944,9 @@ def wrapper_train(model, config, data_gen,
                     "next_umap_celltype","next_umap_genotype","next_umap_genotype_next"]
                 for res_key, res_img_val in results.items():
                     if res_key in save_image_types:
-                        res_img_val.savefig(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png", dpi=300,bbox_inches='tight')
+                        res_img_val.savefig(save_dir2 / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png", dpi=300,bbox_inches='tight')
                         metrics_to_log[f"test/{eval_dict_key}_{res_key}"] = wandb.Image(
-                            str(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png"),
+                            str(save_dir2 / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png"),
                             caption=f"{eval_dict_key}_{res_key} epoch {epoch}",
                         )
                 # save the PS calculations
@@ -957,7 +959,7 @@ def wrapper_train(model, config, data_gen,
                             frameon=False,return_fig=True, show=False,palette="tab20",)
                         # Replace '/' with '_' in ps_names
                         lon_c_rep=lon_c.replace('/', '_') 
-                        fig_lonc.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c_rep}_e{epoch}.png", dpi=300,bbox_inches='tight')
+                        fig_lonc.savefig(save_dir2 / f"{eval_dict_key}_loness_{lon_c_rep}_e{epoch}.png", dpi=300,bbox_inches='tight')
                     if ('ps_names' in data_gen) & ('ps_pred' in adata_ret.obsm) :
                         predicted_ps_names = data_gen['ps_names']
                         predicted_ps_score = adata_ret.obsm['ps_pred']
@@ -969,7 +971,7 @@ def wrapper_train(model, config, data_gen,
                             adata_ret.obs[f'{lon_c_rep}_pred'] = predicted_ps_score[:,si_i]
                             fig_lonc_pred = sc.pl.umap(adata_ret,color=[f'{lon_c_rep}_pred'],title=[f"loness {lon_c_rep}_pred  e{epoch}",],
                                 frameon=False,return_fig=True, show=False,palette="tab20",)
-                            fig_lonc_pred.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c_rep}_pred_e{epoch}.png", dpi=300,bbox_inches='tight')
+                            fig_lonc_pred.savefig(save_dir2 / f"{eval_dict_key}_loness_{lon_c_rep}_pred_e{epoch}.png", dpi=300,bbox_inches='tight')
                     results["adata"] = adata_ret
                 if "adata" in results:
                     results["adata"].write_h5ad(save_dir / f'adata_last_validation_{eval_dict_key}.h5ad')
