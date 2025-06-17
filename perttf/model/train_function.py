@@ -955,16 +955,22 @@ def wrapper_train(model, config, data_gen,
                     for lon_c in loness_columns:
                         fig_lonc = sc.pl.umap(adata_ret,color=[lon_c],title=[f"loness {lon_c}  e{epoch}",],
                             frameon=False,return_fig=True, show=False,palette="tab20",)
-                        fig_lonc.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c}_e{epoch}.png", dpi=300,bbox_inches='tight')
-                    if ('ps_names' in data_gen) & ('ps_pred' in adata_ret.obsm):
+                        # Replace '/' with '_' in ps_names
+                        lon_c_rep=lon_c.replace('/', '_') 
+                        fig_lonc.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c_rep}_e{epoch}.png", dpi=300,bbox_inches='tight')
+                    if ('ps_names' in data_gen) & ('ps_pred' in adata_ret.obsm) :
                         predicted_ps_names = data_gen['ps_names']
                         predicted_ps_score = adata_ret.obsm['ps_pred']
+                        logger.info(f"predicted_ps_names: {predicted_ps_names}")
+                        logger.info(f"predicted_ps_score: {predicted_ps_score.shape}")
                         for si_i in range(len(predicted_ps_names)):
-                            adata_ret.obs[f'{lon_c}_pred'] = predicted_ps_score[:,si_i]
-                            fig_lonc_pred = sc.pl.umap(adata_ret,color=[f'{lon_c}_pred'],title=[f"loness {lon_c}_pred  e{epoch}",],
+                            lon_c = predicted_ps_names[si_i]
+                            lon_c_rep=lon_c.replace('/', '_') 
+                            adata_ret.obs[f'{lon_c_rep}_pred'] = predicted_ps_score[:,si_i]
+                            fig_lonc_pred = sc.pl.umap(adata_ret,color=[f'{lon_c_rep}_pred'],title=[f"loness {lon_c_rep}_pred  e{epoch}",],
                                 frameon=False,return_fig=True, show=False,palette="tab20",)
-                            fig_lonc_pred.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c}_pred_e{epoch}.png", dpi=300,bbox_inches='tight')
-
+                            fig_lonc_pred.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c_rep}_pred_e{epoch}.png", dpi=300,bbox_inches='tight')
+                    results["adata"] = adata_ret
                 if "adata" in results:
                     results["adata"].write_h5ad(save_dir / f'adata_last_validation_{eval_dict_key}.h5ad')
 
