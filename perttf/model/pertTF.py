@@ -504,6 +504,10 @@ class PerturbationTFModel(TransformerModel):
         shape_cls = (N, self.n_cls) if time_step is not None else (N, src.size(1), self.n_cls)
         cls_outputs = array_func(shape_cls, dtype=float32_)
 
+        # added for PS score predictions
+        shape_ps = (N, self.n_ps) if time_step is not None else (N, src.size(1), self.n_ps)
+        ps_outputs =  array_func(shape_ps, dtype=float32_)
+
         for i in trange(0, N, batch_size):
             src_d = src[i : i + batch_size].to(device)
             values_d = values[i : i + batch_size].to(device)
@@ -561,5 +565,12 @@ class PerturbationTFModel(TransformerModel):
                 cls_output = cls_output.numpy()
             cls_outputs[i : i + batch_size] = cls_output
 
-        return outputs, outputs_next, pert_outputs, cls_outputs
+            ps_output = self.ps_decoder(cell_emb)
+            if output_to_cpu:
+                ps_output = ps_output.cpu()
+            if return_np:
+                ps_output = ps_output.numpy()
+            ps_outputs[i : i + batch_size] = ps_output            
+
+        return outputs, outputs_next, pert_outputs, cls_outputs, ps_outputs
 

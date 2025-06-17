@@ -581,7 +581,7 @@ def eval_testdata(
             #    time_step=0,
             #    return_np=True,
             #)
-            cell_embeddings, cell_embeddings_next, pert_preds, cls_preds = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
+            cell_embeddings, cell_embeddings_next, pert_preds, cls_preds, ps_preds = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
@@ -601,7 +601,8 @@ def eval_testdata(
         
         adata_t.obsm["X_scGPT_next"] = cell_embeddings_next
         #adata_t.obsm["X_pert_pred"] = pert_preds
-
+        if config.ps_weight >0:
+          adata_t.obsm["ps_pred"] = ps_preds
 
         # require: genotype_to_index
 
@@ -946,6 +947,24 @@ def wrapper_train(model, config, data_gen,
                             str(save_dir / f"{eval_dict_key}_embeddings_{res_key}_e{epoch}.png"),
                             caption=f"{eval_dict_key}_{res_key} epoch {epoch}",
                         )
+                # save the PS calculations
+                if config.ps_weight > 0:
+                    # plot the existing loness columns
+                    adata_ret = results["adata"]
+                    loness_columns = [x for x in adata_ret.obs if x.startswith('lonESS')]
+                    for lon_c in loness_columns:
+                        fig_lonc = sc.pl.umap(adata_ret,color=[lon_c],title=[f"loness {lon_c}  e{epoch}",],
+                            frameon=False,return_fig=True, show=False,palette="tab20",)
+                        fig_lonc.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c}_e{epoch}.png", dpi=300,bbox_inches='tight')
+                    if ('ps_names' in data_gen) & ('ps_pred' in adata_ret.obsm):
+                        predicted_ps_names = data_gen['ps_names']
+                        predicted_ps_score = adata_ret.obsm['ps_pred']
+                        for si_i in range(len(predicted_ps_names)):
+                            adata_ret.obs[f'{lon_c}_pred'] = predicted_ps_score[:,si_i]
+                            fig_lonc_pred = sc.pl.umap(adata_ret,color=[f'{lon_c}_pred'],title=[f"loness {lon_c}_pred  e{epoch}",],
+                                frameon=False,return_fig=True, show=False,palette="tab20",)
+                            fig_lonc_pred.savefig(save_dir / f"{eval_dict_key}_loness_{lon_c}_pred_e{epoch}.png", dpi=300,bbox_inches='tight')
+
                 if "adata" in results:
                     results["adata"].write_h5ad(save_dir / f'adata_last_validation_{eval_dict_key}.h5ad')
 
