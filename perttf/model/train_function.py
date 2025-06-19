@@ -654,6 +654,7 @@ def eval_testdata(
                         return_fig=True,
                         show=False,
                     )
+                    plt.close()
                     results["next_umap_celltype"] = fign1
                 if config.perturbation_classifier_weight > -1:
                     fign2 = sc.pl.umap(adata_t,color=["genotype"],
@@ -662,6 +663,7 @@ def eval_testdata(
                         return_fig=True,
                         show=False,
                     )
+                    plt.close()
                     results["next_umap_genotype"] = fign2
                     fign3 = sc.pl.umap(adata_t,color=["genotype_next"],
                         title=[f"{eval_key} next genotype, e{epoch}, pred embedding",],
@@ -670,6 +672,7 @@ def eval_testdata(
                         show=False,
                         #palette="Set1",
                     )
+                    plt.close()
                     results["next_umap_genotype_next"] = fign3
             
             # all other evaluations
@@ -685,6 +688,7 @@ def eval_testdata(
                     return_fig=True,
                     show=False,
                 )
+                plt.close()
                 results["batch_umap"] = fig
     
             #sc.pp.neighbors(adata_t, use_rep="X_scGPT")
@@ -702,6 +706,7 @@ def eval_testdata(
                     return_fig=True,
                     show=False,
                 )
+                plt.close()
                 results["celltype_umap"] = fig
                 fig4 = sc.pl.umap(
                     adata_t,
@@ -714,6 +719,7 @@ def eval_testdata(
                     show=False,
                     #palette="Set1",
                 )
+                plt.close()
                 results["pred_celltype"] = fig4
     
             if config.perturbation_classifier_weight > -1:
@@ -727,6 +733,7 @@ def eval_testdata(
                     return_fig=True,
                     show=False,
                 )
+                plt.close()
                 results["genotype_umap"] = fig
                 fig2 = sc.pl.umap(
                     adata_t,
@@ -739,6 +746,7 @@ def eval_testdata(
                     show=False,
                     palette="tab20",
                 )
+                plt.close()
                 results["genotype_umap2"] = fig2
     
                 fig3 = sc.pl.umap(
@@ -752,6 +760,7 @@ def eval_testdata(
                     show=False,
                     #palette="Set1",
                 )
+                plt.close()
                 results["pred_genotype"] = fig3
     
                 if "genotype_next" in adata_t.obs:
@@ -766,6 +775,7 @@ def eval_testdata(
                         show=False,
                         #palette="Set1",
                     )
+                    plt.close()
                     results["genotype_next"] = fig5
 
     results['adata'] = adata_t
@@ -957,6 +967,7 @@ def wrapper_train(model, config, data_gen,
                     for lon_c in loness_columns:
                         fig_lonc = sc.pl.umap(adata_ret,color=[lon_c],title=[f"loness {lon_c}  e{epoch}",],
                             frameon=False,return_fig=True, show=False,palette="tab20",)
+                        plt.close()
                         # Replace '/' with '_' in ps_names
                         lon_c_rep=lon_c.replace('/', '_') 
                         fig_lonc.savefig(save_dir2 / f"{eval_dict_key}_loness_{lon_c_rep}_e{epoch}.png", dpi=300,bbox_inches='tight')
@@ -971,6 +982,7 @@ def wrapper_train(model, config, data_gen,
                             adata_ret.obs[f'{lon_c_rep}_pred'] = predicted_ps_score[:,si_i]
                             fig_lonc_pred = sc.pl.umap(adata_ret,color=[f'{lon_c_rep}_pred'],title=[f"loness {lon_c_rep}_pred  e{epoch}",],
                                 frameon=False,return_fig=True, show=False,palette="tab20",)
+                            plt.close()
                             fig_lonc_pred.savefig(save_dir2 / f"{eval_dict_key}_loness_{lon_c_rep}_pred_e{epoch}.png", dpi=300,bbox_inches='tight')
                     results["adata"] = adata_ret
                 if "adata" in results:
