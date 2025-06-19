@@ -27,6 +27,8 @@ from scgpt.loss import (
 from scgpt.tokenizer import tokenize_and_pad_batch, random_mask_value
 from scgpt.model import TransformerModel, AdversarialDiscriminator
 
+import matplotlib.pyplot as plt
+
 from perttf.model.train_data_gen import prepare_data,prepare_dataloader
 
 def train(model: nn.Module,
