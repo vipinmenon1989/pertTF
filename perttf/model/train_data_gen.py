@@ -94,6 +94,7 @@ def add_pred_layer(adata: AnnData,
             'pertlabel_next': perturbation_labels_next, 
             'adata': adata_p,
             'ps': ps_matrix,
+            'ps_next': ps_matrix,
             'ps_names': ps_exist_c,
         }
         return retdict
@@ -137,6 +138,8 @@ def add_pred_layer(adata: AnnData,
 
     perturbation_labels_next = target_pert
     perturbation_labels_next = np.array(perturbation_labels_next)
+    # return the ps matrix next
+    ps_matrix_next = ps_matrix[target_cell_id_index]
     # instead of returning a tuplex, return a dictionary 
     retdict={
         'expmat': all_counts_0,
@@ -148,6 +151,7 @@ def add_pred_layer(adata: AnnData,
         'pertlabel_next': perturbation_labels_next, 
         'adata': adata_p,
         'ps':ps_matrix,
+        'ps_next': ps_matrix_next,
         'ps_names': ps_exist_c,
     }
     return retdict
@@ -281,6 +285,7 @@ def produce_training_datasets(adata_input, config,
     index_rounds=None
     #
     ps_scores=None
+    ps_scores_next=None
 
     if cell_type_to_index is None:
         cell_type_to_index = {cell_type: index for index, cell_type in enumerate(set(adata_input.obs["celltype"].tolist()))}
@@ -309,6 +314,7 @@ def produce_training_datasets(adata_input, config,
         perturbation_labels_next = add_l_ret['pertlabel_next']  
         adata_0 = add_l_ret['adata']
         ps_0 = add_l_ret['ps']
+        ps_next_0 = add_l_ret['ps_next']
         ps_names = add_l_ret['ps_names']
         
         print('adding next layers...')
@@ -333,6 +339,7 @@ def produce_training_datasets(adata_input, config,
         perturbation_indexes_next_0 = np.array(perturbation_indexes_next_0)
 
         ps_0 = np.array(ps_0)
+        ps_next_0 = np.array(ps_next_0)
         
         if adata is None:
             adata = adata_0 #.copy()
@@ -351,6 +358,7 @@ def produce_training_datasets(adata_input, config,
             cell_ids = adata.obs.index.values
             index_rounds = np.array([ni]*len(celltypes_labels_0))
             ps_scores = ps_0
+            ps_scores_next = ps_next_0
         else:
             adata_0.obs.index = adata_0.obs.index + "-r"+str(ni)
             adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
@@ -368,6 +376,7 @@ def produce_training_datasets(adata_input, config,
             index_rounds = np.concatenate([index_rounds, np.array([ni]*len(celltypes_labels_0))], axis=0)
             #.obs['batch_merged_rounds'] = index_rounds
             ps_scores = np.concatenate([ps_scores, ps_0], axis=0)
+            ps_scores_next = np.concatenate([ps_scores_next, ps_next_0], axis=0)
 
         #cell_ids = adata.obs.index.values
             
@@ -395,10 +404,11 @@ def produce_training_datasets(adata_input, config,
         train_perturbation_labels_next, valid_perturbation_labels_next, # perturbation_indexes_next
         cell_ids_train, cell_ids_valid,
         ps_train, ps_valid,
+        ps_next_train, ps_next_valid,
     ) = train_test_split(
         all_counts, celltypes_indexes, perturbation_indexes, batch_ids, next_counts, 
         celltypes_indexes_next, perturbation_indexes_next,
-        cell_ids, ps_scores, 
+        cell_ids, ps_scores, ps_scores_next,
         test_size=0.1, shuffle=True
     )
 
@@ -439,6 +449,7 @@ def produce_training_datasets(adata_input, config,
     train_perturbation_labels_next = train_perturbation_labels_next[indices]
     cell_ids_train = cell_ids_train[indices]
     ps_train = ps_train[indices]
+    ps_next_train = ps_next_train[indices]
 
     if config.per_seq_batch_sample  and "batch_id" in adata.obs.columns: # and config.DSBN
         # sort the adata by batch_id in advance
@@ -545,6 +556,8 @@ def produce_training_datasets(adata_input, config,
         'tokenized_valid_next': tokenized_valid_next,
         'ps_train': ps_train,
         'ps_valid': ps_valid,
+        'ps_next_train': ps_next_train,
+        'ps_next_valid': ps_next_valid,
         'ps_names': ps_names,
     }
     return ret_dict
@@ -573,6 +586,8 @@ def prepare_data(
     #
     ps_train=data_dict['ps_train']
     ps_valid=data_dict['ps_valid']
+    ps_next_train=data_dict['ps_next_train']
+    ps_next_valid=data_dict['ps_next_valid']
 
     masked_values_train = random_mask_value(
         tokenized_train["values"],
@@ -624,8 +639,8 @@ def prepare_data(
     tensor_ps_train=torch.from_numpy(ps_train).float()
     tensor_ps_valid=torch.from_numpy(ps_valid).float()
 
-    tensor_ps_train_next=torch.clone(tensor_ps_train) # now, duplicate ps for next
-    tensor_ps_valid_next=torch.clone(tensor_ps_valid)
+    tensor_ps_train_next=torch.from_numpy(ps_next_train) # now, duplicate ps for next
+    tensor_ps_valid_next=torch.from_numpy(ps_next_valid)
 
     if sort_seq_batch:
         train_sort_ids = np.argsort(train_batch_labels)
@@ -741,5 +756,4 @@ def prepare_dataloader(
         pin_memory=True,
     )
     return data_loader
-
 
