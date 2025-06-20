@@ -639,8 +639,8 @@ def prepare_data(
     tensor_ps_train=torch.from_numpy(ps_train).float()
     tensor_ps_valid=torch.from_numpy(ps_valid).float()
 
-    tensor_ps_train_next=torch.from_numpy(ps_next_train) # now, duplicate ps for next
-    tensor_ps_valid_next=torch.from_numpy(ps_next_valid)
+    tensor_ps_train_next=torch.from_numpy(ps_next_train).float() # now, duplicate ps for next
+    tensor_ps_valid_next=torch.from_numpy(ps_next_valid).float()
 
     if sort_seq_batch:
         train_sort_ids = np.argsort(train_batch_labels)
