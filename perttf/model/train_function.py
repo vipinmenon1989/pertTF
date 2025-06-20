@@ -1012,7 +1012,9 @@ def wrapper_train(model, config, data_gen,
      'cell_type_to_index': data_gen["cell_type_to_index"],
      'genotype_to_index': data_gen["genotype_to_index"],
      'genes': data_gen["genes"], # genes,
-     'gene_ids': data_gen["gene_ids"] # gene_ids,
+     'gene_ids': data_gen["gene_ids"], # gene_ids,
+     'ps_names': data_gen["ps_names"],
+     'config': config, # config file
     }
     torch.save(running_parameters, save_dir / "running_parameters.pt")
     return best_model
