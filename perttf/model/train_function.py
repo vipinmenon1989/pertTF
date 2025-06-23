@@ -1017,6 +1017,10 @@ def wrapper_train(model, config, data_gen,
      'config': config.as_dict(), # config as dictionary
     }
     torch.save(running_parameters, save_dir / "running_parameters.pt")
+    import json
+    json.dump(config.as_dict(), open(save_dir / "config.json", "w"))
+    # later, use the following to load json file
+    #config_data = json.load(open(save_dir / 'config.json', 'r'))
     return best_model
 
 
