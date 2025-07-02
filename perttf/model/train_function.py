@@ -926,7 +926,7 @@ def wrapper_train(model, config, data_gen,
         if epoch % 2 == 1:
             if logger is not None:
                 logger.info(f"Saving model to {save_dir}")
-            torch.save(best_model.state_dict(), save_dir / f"model_e{best_model_epoch}.pt")
+            torch.save(best_model.state_dict(), save_dir / f"model_e{epoch}.pt")
             # change images of each epoch to subfolder
             save_dir2=save_dir / f'e{epoch}_imgs'
             save_dir2.mkdir(parents=True, exist_ok=True)
