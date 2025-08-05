@@ -130,8 +130,10 @@ def add_pred_layer(adata: AnnData,
 
     adata_p.obs['genotype_next'] = target_pert # random select the next perturbations
     adata_p.obs['next_cell_id'] = target_cell_id
+    
+    #(adata_p.layers[binned_layer_key].toarray() if issparse(adata_p.layers[binned_layer_key]) else adata_p.layers[binned_layer_key])
 
-    input_layers=adata.layers[binned_layer_key] #.copy()
+    input_layers=all_counts_0 # adata.layers[binned_layer_key] #.copy()
 
     target_cell_id_index=obsf.index.get_indexer(target_cell_id)
     target_layers=input_layers[target_cell_id_index]
@@ -363,6 +365,8 @@ def produce_training_datasets(adata_input, config,
             adata_0.obs.index = adata_0.obs.index + "-r"+str(ni)
             adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
             
+            # create a breakpoint here
+            #import pdb; pdb.set_trace()
             next_counts = np.concatenate([next_counts, next_counts_0], axis=0)
             all_counts = np.concatenate([all_counts, all_counts_0], axis=0)
             celltypes_labels = np.concatenate([celltypes_labels, celltypes_labels_0], axis=0)
