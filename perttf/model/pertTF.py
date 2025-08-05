@@ -17,9 +17,41 @@ import torch.distributed as dist
 import scgpt as scg
 from scgpt.model import TransformerModel
 
-class PerterbationDecoder(nn.Module):
+class PerturbationDecoder(nn.Module):
     """
-    Decoder for perturbation task.
+    Decoder for perturbation label prediction.
+    revised from scGPT.ClsDecoder
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        n_pert: int,
+        nlayers: int = 3,
+        activation: callable = nn.ReLU,
+    ):
+        super().__init__()
+        # module list
+        self._decoder = nn.ModuleList()
+        for i in range(nlayers - 1):
+            self._decoder.append(nn.Linear(d_model, d_model))
+            self._decoder.append(activation())
+            self._decoder.append(nn.LayerNorm(d_model))
+        self.out_layer = nn.Linear(d_model, n_pert)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Args:
+            x: Tensor, shape [batch_size, embsize]
+        """
+        for layer in self._decoder:
+            x = layer(x)
+        return self.out_layer(x)
+
+
+class PSDecoder(nn.Module):
+    """
+    Decoder for ps score prediction.
     revised from scGPT.ClsDecoder
     """
 
@@ -118,6 +150,7 @@ class PerturbationTFModel(TransformerModel):
     def __init__(self,
                  n_pert: int,
                  nlayers_pert: int,
+                 n_ps: int,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         # add perturbation encoder
@@ -133,7 +166,7 @@ class PerturbationTFModel(TransformerModel):
         # the following is the perturbation decoder
         #n_pert = kwargs.get("n_perturb") if "n_perturb" in kwargs else 1
         #nlayers_pert = kwargs.get("nlayers_perturb") if "nlayers_perturb" in kwargs else 3
-        self.pert_decoder = PerterbationDecoder(d_model, n_pert, nlayers=nlayers_pert)
+        self.pert_decoder = PerturbationDecoder(d_model, n_pert, nlayers=nlayers_pert)
 
         # added: batch2 encoder, especially to model different cellular systems like cell line vs primary cells
         self.batch2_pad_id = None #kwargs.get("batch2_pad_id") if "batch2_pad_id" in kwargs else 2
@@ -141,6 +174,14 @@ class PerturbationTFModel(TransformerModel):
         self.batch2_encoder = Batch2LabelEncoder(2, d_model) # should replace 2 to n_batch later
         self.n_pert = n_pert
         self.n_cls = kwargs.get("n_cls") if "n_cls" in kwargs else 1
+
+        # added: adding PS score decoder
+        #self.n_ps = kwargs.get("n_ps") if "n_ps" in kwargs else 0
+        self.n_ps = n_ps
+        if self.n_ps > 0:
+            self.ps_decoder = PSDecoder(d_model, self.n_ps, nlayers = nlayers_pert)
+        else:
+            self.ps_decoder = None
 
     # rewrite encode function
     def _encode(
@@ -209,6 +250,7 @@ class PerturbationTFModel(TransformerModel):
         ECS: bool = False,
         PERTPRED: bool = False,
         do_sample: bool = False,
+        PSPRED: bool = False,
     ) -> Mapping[str, Tensor]:
         """
         Args:
@@ -227,8 +269,10 @@ class PerturbationTFModel(TransformerModel):
                 embedding MVC output
             ECS (:obj:`bool`): if True, return the elastic cell similarity objective
                 (ECS) output.
-            PERTPRED (:obj:`bool`): if True, return the perturbation prediction objective
-                (PERTPRED) output. Added here
+            PERTPRED (:obj:`bool`): if True, return the perturbation prediction
+                (PERTPRED) output. 
+            PSPRED (:obj:`bool`): if True, return the PS score prediction 
+                (PERTPRED) output. 
 
         Returns:
             dict of output Tensors.
@@ -402,6 +446,11 @@ class PerturbationTFModel(TransformerModel):
             output["pert_output"] = self.pert_decoder(cell_emb)  # (batch, n_cls)
             output["pert_output_next"] = self.pert_decoder(cell_emb_next)  # (batch, n_cls)
 
+        # PS score prediction
+        if PSPRED and self.ps_decoder is not None:
+            output["ps_output"] = self.ps_decoder(cell_emb)
+            output["ps_output_next"] = self.ps_decoder(cell_emb_next)  # (batch, n_cls)
+        
         return output
 
     def encode_batch_with_perturb(
@@ -454,6 +503,10 @@ class PerturbationTFModel(TransformerModel):
         # add for cls predictions
         shape_cls = (N, self.n_cls) if time_step is not None else (N, src.size(1), self.n_cls)
         cls_outputs = array_func(shape_cls, dtype=float32_)
+
+        # added for PS score predictions
+        shape_ps = (N, self.n_ps) if time_step is not None else (N, src.size(1), self.n_ps)
+        ps_outputs =  array_func(shape_ps, dtype=float32_)
 
         for i in trange(0, N, batch_size):
             src_d = src[i : i + batch_size].to(device)
@@ -512,5 +565,12 @@ class PerturbationTFModel(TransformerModel):
                 cls_output = cls_output.numpy()
             cls_outputs[i : i + batch_size] = cls_output
 
-        return outputs, outputs_next, pert_outputs, cls_outputs
+            ps_output = self.ps_decoder(cell_emb)
+            if output_to_cpu:
+                ps_output = ps_output.cpu()
+            if return_np:
+                ps_output = ps_output.numpy()
+            ps_outputs[i : i + batch_size] = ps_output            
+
+        return outputs, outputs_next, pert_outputs, cls_outputs, ps_outputs
 

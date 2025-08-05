@@ -22,7 +22,8 @@ from scgpt import SubsetsBatchSampler
 def add_pred_layer(adata: AnnData, 
         binned_layer_key: Optional[str] = 'X_binned', 
         next_layer_key: Optional[str] = 'X_binned_next',
-        next_cell_pred: Literal["identity","pert"] = "identity") -> Dict:
+        next_cell_pred: Literal["identity","pert"] = "identity",
+        ps_columns: Optional[str] = None) -> Dict:
     """
     format controls the different input value wrapping, including categorical
     binned style, fixed-sum normalized counts, log1p fixed-sum normalized counts, etc.
@@ -70,10 +71,34 @@ def add_pred_layer(adata: AnnData,
     # right now, just a duplicate of input layers
     # 
     celltypes_labels_next = celltypes_labels_0
+
+    if ps_columns is not None:
+        ps_exist_c=[x for x in ps_columns if x in adata_p.obs.columns]
+        print('total number of columns used for PS modeling:'+str(len(ps_exist_c)))
+        ps_matrix=adata_p.obs[ps_exist_c].values
+        ps_matrix=np.nan_to_num(ps_matrix,nan=0.0)
+    else:
+        ps_exist_c=["PS"]
+        ps_matrix= [0.0] * adata_p.shape[0] # a shape of 0
+    #
     if next_cell_pred == "identity":
         perturbation_labels_next = perturbation_labels_0
         input_layers=adata_p.layers[binned_layer_key] #.copy()
-        return (all_counts_0,input_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
+        retdict={
+            'expmat': all_counts_0,
+            'expmat_next': input_layers,
+            'celllabel': celltypes_labels_0,
+            'pertlabel': perturbation_labels_0, 
+            'batchid': batch_ids_0, 
+            'celllabel_next': celltypes_labels_next, 
+            'pertlabel_next': perturbation_labels_next, 
+            'adata': adata_p,
+            'ps': ps_matrix,
+            'ps_next': ps_matrix,
+            'ps_names': ps_exist_c,
+        }
+        return retdict
+        #return (all_counts_0,input_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
     
     # predict the next cell type
     obsf=adata.obs
@@ -113,7 +138,24 @@ def add_pred_layer(adata: AnnData,
 
     perturbation_labels_next = target_pert
     perturbation_labels_next = np.array(perturbation_labels_next)
-    return (all_counts_0,target_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
+    # return the ps matrix next
+    ps_matrix_next = ps_matrix[target_cell_id_index]
+    # instead of returning a tuplex, return a dictionary 
+    retdict={
+        'expmat': all_counts_0,
+        'expmat_next': target_layers,
+        'celllabel': celltypes_labels_0,
+        'pertlabel': perturbation_labels_0, 
+        'batchid': batch_ids_0, 
+        'celllabel_next': celltypes_labels_next, 
+        'pertlabel_next': perturbation_labels_next, 
+        'adata': adata_p,
+        'ps':ps_matrix,
+        'ps_next': ps_matrix_next,
+        'ps_names': ps_exist_c,
+    }
+    return retdict
+    #return (all_counts_0,target_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
 
 
 def add_pred_layer_old(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
@@ -195,6 +237,7 @@ def produce_training_datasets(adata_input, config,
                               cell_type_to_index = None,
                               genotype_to_index = None,
                               vocab = None,
+                              ps_columns = None,
                               logger = scg.logger):
     """
     produce training datasets for from scRNA-seq 
@@ -240,6 +283,9 @@ def produce_training_datasets(adata_input, config,
     batch_indexes = None
     cell_ids = None
     index_rounds=None
+    #
+    ps_scores=None
+    ps_scores_next=None
 
     if cell_type_to_index is None:
         cell_type_to_index = {cell_type: index for index, cell_type in enumerate(set(adata_input.obs["celltype"].tolist()))}
@@ -256,11 +302,20 @@ def produce_training_datasets(adata_input, config,
         # predict the next state of a cell
         #next_counts_0,adata_0 = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
         print(f'rounds: {ni}')
-        (all_counts_0,next_counts_0, 
-            celltypes_labels_0, perturbation_labels_0, 
-            batch_ids_0, 
-            celltypes_labels_next, perturbation_labels_next, 
-            adata_0) = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        #(all_counts_0,next_counts_0, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next,  adata_0) = add_pred_layer(adata_input,next_cell_pred=next_cell_pred)
+        add_l_ret = add_pred_layer(adata_input,next_cell_pred=next_cell_pred, ps_columns = ps_columns)
+        
+        all_counts_0 = add_l_ret['expmat']
+        next_counts_0 = add_l_ret['expmat_next'] 
+        celltypes_labels_0 = add_l_ret['celllabel'] 
+        perturbation_labels_0 = add_l_ret['pertlabel'] 
+        batch_ids_0 = add_l_ret['batchid'] 
+        celltypes_labels_next = add_l_ret['celllabel_next'] 
+        perturbation_labels_next = add_l_ret['pertlabel_next']  
+        adata_0 = add_l_ret['adata']
+        ps_0 = add_l_ret['ps']
+        ps_next_0 = add_l_ret['ps_next']
+        ps_names = add_l_ret['ps_names']
         
         print('adding next layers...')
         #all_counts_0 = (adata_0.layers[input_layer_key].A if issparse(adata_0.layers[input_layer_key]) else adata_0.layers[input_layer_key])
@@ -283,6 +338,9 @@ def produce_training_datasets(adata_input, config,
         perturbation_indexes_next_0 = [genotype_to_index[genotype] for genotype in perturbation_labels_next]
         perturbation_indexes_next_0 = np.array(perturbation_indexes_next_0)
 
+        ps_0 = np.array(ps_0)
+        ps_next_0 = np.array(ps_next_0)
+        
         if adata is None:
             adata = adata_0 #.copy()
             next_counts = next_counts_0
@@ -299,6 +357,8 @@ def produce_training_datasets(adata_input, config,
             perturbation_indexes_next = perturbation_indexes_next_0
             cell_ids = adata.obs.index.values
             index_rounds = np.array([ni]*len(celltypes_labels_0))
+            ps_scores = ps_0
+            ps_scores_next = ps_next_0
         else:
             adata_0.obs.index = adata_0.obs.index + "-r"+str(ni)
             adata = adata.concatenate(adata_0,batch_key='batch_merged_rounds',index_unique=None)
@@ -315,6 +375,8 @@ def produce_training_datasets(adata_input, config,
             cell_ids = np.concatenate([cell_ids, adata_0.obs.index.values],axis=0)
             index_rounds = np.concatenate([index_rounds, np.array([ni]*len(celltypes_labels_0))], axis=0)
             #.obs['batch_merged_rounds'] = index_rounds
+            ps_scores = np.concatenate([ps_scores, ps_0], axis=0)
+            ps_scores_next = np.concatenate([ps_scores_next, ps_next_0], axis=0)
 
         #cell_ids = adata.obs.index.values
             
@@ -340,11 +402,14 @@ def produce_training_datasets(adata_input, config,
         train_data_next, valid_data_next,
         train_celltype_labels_next, valid_celltype_labels_next, # celltypes_indexes_next
         train_perturbation_labels_next, valid_perturbation_labels_next, # perturbation_indexes_next
-        cell_ids_train, cell_ids_valid
+        cell_ids_train, cell_ids_valid,
+        ps_train, ps_valid,
+        ps_next_train, ps_next_valid,
     ) = train_test_split(
         all_counts, celltypes_indexes, perturbation_indexes, batch_ids, next_counts, 
         celltypes_indexes_next, perturbation_indexes_next,
-        cell_ids, test_size=0.1, shuffle=True
+        cell_ids, ps_scores, ps_scores_next,
+        test_size=0.1, shuffle=True
     )
 
     adata.obs['is_in_training']=adata.obs.index.isin(cell_ids_train)
@@ -383,6 +448,8 @@ def produce_training_datasets(adata_input, config,
     train_celltype_labels_next = train_celltype_labels_next[indices]
     train_perturbation_labels_next = train_perturbation_labels_next[indices]
     cell_ids_train = cell_ids_train[indices]
+    ps_train = ps_train[indices]
+    ps_next_train = ps_next_train[indices]
 
     if config.per_seq_batch_sample  and "batch_id" in adata.obs.columns: # and config.DSBN
         # sort the adata by batch_id in advance
@@ -487,6 +554,11 @@ def produce_training_datasets(adata_input, config,
         'tokenized_valid': tokenized_valid,
         'tokenized_train_next': tokenized_train_next,
         'tokenized_valid_next': tokenized_valid_next,
+        'ps_train': ps_train,
+        'ps_valid': ps_valid,
+        'ps_next_train': ps_next_train,
+        'ps_next_valid': ps_next_valid,
+        'ps_names': ps_names,
     }
     return ret_dict
 
@@ -511,7 +583,11 @@ def prepare_data(
     valid_celltype_labels_next=data_dict['valid_celltype_labels_next']
     train_perturbation_labels_next=data_dict['train_perturbation_labels_next']
     valid_perturbation_labels_next=data_dict['valid_perturbation_labels_next']
-
+    #
+    ps_train=data_dict['ps_train']
+    ps_valid=data_dict['ps_valid']
+    ps_next_train=data_dict['ps_next_train']
+    ps_next_valid=data_dict['ps_next_valid']
 
     masked_values_train = random_mask_value(
         tokenized_train["values"],
@@ -560,6 +636,12 @@ def prepare_data(
     tensor_perturbation_labels_train_next = torch.from_numpy(train_perturbation_labels_next).long()#added
     tensor_perturbation_labels_valid_next = torch.from_numpy(valid_perturbation_labels_next).long()#added
 
+    tensor_ps_train=torch.from_numpy(ps_train).float()
+    tensor_ps_valid=torch.from_numpy(ps_valid).float()
+
+    tensor_ps_train_next=torch.from_numpy(ps_next_train).float() # now, duplicate ps for next
+    tensor_ps_valid_next=torch.from_numpy(ps_next_valid).float()
+
     if sort_seq_batch:
         train_sort_ids = np.argsort(train_batch_labels)
         input_gene_ids_train = input_gene_ids_train[train_sort_ids]
@@ -572,7 +654,8 @@ def prepare_data(
 
         tensor_celltype_labels_train_next = tensor_celltype_labels_train_next[train_sort_ids]#added
         tensor_perturbation_labels_train_next = tensor_perturbation_labels_train_next[train_sort_ids]#added
-
+        tensor_ps_train=tensor_ps_train[train_sort_ids] # added
+        tensor_ps_train_next=tensor_ps_train_next[train_sort_ids]
 
         valid_sort_ids = np.argsort(valid_batch_labels)
         input_gene_ids_valid = input_gene_ids_valid[valid_sort_ids]
@@ -585,6 +668,8 @@ def prepare_data(
 
         tensor_celltype_labels_valid_next = tensor_celltype_labels_valid_next[valid_sort_ids] #added
         tensor_perturbation_labels_valid_next = tensor_perturbation_labels_valid_next[valid_sort_ids] #added
+        tensor_ps_valid=tensor_ps_valid[valid_sort_ids] #added
+        tensor_ps_valid_next=tensor_ps_valid_next[valid_sort_ids]
 
     train_data_pt = {
         "gene_ids": input_gene_ids_train,
@@ -596,6 +681,8 @@ def prepare_data(
         "perturbation_labels": tensor_perturbation_labels_train, #added
         "celltype_labels_next": tensor_celltype_labels_train_next, #added
         "perturbation_labels_next": tensor_perturbation_labels_train_next, #added
+        "ps": tensor_ps_train,
+        "ps_next": tensor_ps_train_next,
 
     }
     valid_data_pt = {
@@ -608,6 +695,8 @@ def prepare_data(
         "perturbation_labels": tensor_perturbation_labels_valid, #added
         "celltype_labels_next": tensor_celltype_labels_valid_next, #added
         "perturbation_labels_next": tensor_perturbation_labels_valid_next, #added
+        "ps": tensor_ps_valid,
+        "ps_next": tensor_ps_valid_next,
     }
 
     return train_data_pt, valid_data_pt
@@ -667,5 +756,4 @@ def prepare_dataloader(
         pin_memory=True,
     )
     return data_loader
-
 
