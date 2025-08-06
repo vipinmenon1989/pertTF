@@ -332,6 +332,7 @@ class PerturbationTFModel(TransformerModel):
             ),
             # else transformer_output + batch_emb.unsqueeze(1),
         )
+        # zero_probs is actually non-zero probability for the Bernoulli
         if self.explicit_zero_prob and do_sample:
             bernoulli = Bernoulli(probs=mlm_output["zero_probs"])
             output["mlm_output"] = bernoulli.sample() * mlm_output["pred"]
@@ -465,6 +466,7 @@ class PerturbationTFModel(TransformerModel):
         output_to_cpu: bool = True,
         time_step: Optional[int] = None,
         return_np: bool = False,
+        predict_expr = False
     ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         revised scgpt.TransformerModel.encode_batch but with additional perturbation
@@ -499,7 +501,7 @@ class PerturbationTFModel(TransformerModel):
         # added for perturbation predictions
         shape_perts = (N, self.n_pert) if time_step is not None else (N, src.size(1), self.n_pert)
         pert_outputs = array_func(shape_perts, dtype=float32_)
-
+        
         # add for cls predictions
         shape_cls = (N, self.n_cls) if time_step is not None else (N, src.size(1), self.n_cls)
         cls_outputs = array_func(shape_cls, dtype=float32_)
@@ -507,6 +509,15 @@ class PerturbationTFModel(TransformerModel):
         # added for PS score predictions
         shape_ps = (N, self.n_ps) if time_step is not None else (N, src.size(1), self.n_ps)
         ps_outputs =  array_func(shape_ps, dtype=float32_)
+        
+       
+        
+        expr_dict = {}
+        if predict_expr:
+            shape_expr = (N, src.size(1))
+            mlm_outputs, mlm_zero_outputs = array_func(shape_expr, dtype=float32_), array_func(shape_expr, dtype=float32_)
+            mvc_outputs, mvc_zero_outputs = array_func(shape_expr, dtype=float32_), array_func(shape_expr, dtype=float32_)
+            mvc_next_outputs, mvc_next_zero_outputs = array_func(shape_expr, dtype=float32_), array_func(shape_expr, dtype=float32_)
 
         for i in trange(0, N, batch_size):
             src_d = src[i : i + batch_size].to(device)
@@ -541,10 +552,10 @@ class PerturbationTFModel(TransformerModel):
                 )
                 cell_emb_next=self.pert_exp_encoder(tf_concat)
                 if output_to_cpu:
-                    cell_emb_next = cell_emb_next.cpu()
+                    cell_emb_next_cpu = cell_emb_next.cpu()
                 if return_np:
-                    cell_emb_next = cell_emb_next.numpy()
-                outputs_next[i : i + batch_size] = cell_emb_next
+                    cell_emb_next_cpu = cell_emb_next_cpu.numpy()
+                outputs_next[i : i + batch_size] = cell_emb_next_cpu
             else:
                 #cell_emb_next=None
                 outputs_next[i : i + batch_size] = output
@@ -565,12 +576,69 @@ class PerturbationTFModel(TransformerModel):
                 cls_output = cls_output.numpy()
             cls_outputs[i : i + batch_size] = cls_output
 
-            ps_output = self.ps_decoder(cell_emb)
-            if output_to_cpu:
-                ps_output = ps_output.cpu()
-            if return_np:
-                ps_output = ps_output.numpy()
-            ps_outputs[i : i + batch_size] = ps_output            
+            # always check if ps decoder is used or not
+            if self.ps_decoder is not None:
+                ps_output = self.ps_decoder(cell_emb)
+                if output_to_cpu:
+                    ps_output = ps_output.cpu()
+                if return_np:
+                    ps_output = ps_output.numpy()
+                ps_outputs[i : i + batch_size] = ps_output   
+            
+            
+            if predict_expr:
+                if self.use_batch_labels:
+                    batch_emb = self.batch_encoder(batch_labels) 
+                
+                mlm_output = self.decoder(
+                    raw_output
+                    if not self.use_batch_labels
+                    else torch.cat(
+                    [
+                       raw_output,
+                       batch_emb.unsqueeze(1).repeat(1, raw_output.shape[1], 1),
+                    ],
+                    dim=2,
+                ),
+                # else transformer_output + batch_emb.unsqueeze(1),
+                )
+                mvc_output = self.mvc_decoder(
+                                cell_emb if not self.use_batch_labels
+                                else torch.cat([cell_emb, batch_emb], 
+                                dim=1
+                                ), # else cell_emb + batch_emb,
+                            self.cur_gene_token_embs,)
+                if pert_labels_next_d is not None:
+                    mvc_output_next = self.mvc_decoder(
+                                cell_emb_next if not self.use_batch_labels
+                                else torch.cat([cell_emb_next, batch_emb], 
+                                dim=1
+                                ), # else cell_emb + batch_emb,
+                            self.cur_gene_token_embs,)
+                else:
+                    mvc_output_next = mvc_output
 
-        return outputs, outputs_next, pert_outputs, cls_outputs, ps_outputs
+                mlm_pred, mlm_zero_probs = mlm_output['pred'], mlm_output['zero_probs'] if self.explicit_zero_prob else 1
+                mvc_pred, mvc_zero_probs = mvc_output['pred'], mvc_output['zero_probs'] if self.explicit_zero_prob else 1
+                mvc_pred_next, mvc_zero_probs_next = mvc_output_next['pred'], mvc_output_next['zero_probs'] if self.explicit_zero_prob else 1
+                if output_to_cpu:
+                    mlm_pred, mlm_zero_probs = mlm_pred.cpu(), mlm_zero_probs.cpu() if self.explicit_zero_prob else 1
+                    mvc_pred, mvc_zero_probs =  mvc_pred.cpu(), mvc_zero_probs.cpu() if self.explicit_zero_prob else 1
+                    mvc_pred_next, mvc_zero_probs_next = mvc_pred_next.cpu(), mvc_zero_probs_next.cpu() if self.explicit_zero_prob else 1
+                if return_np:
+                    mlm_pred, mlm_zero_probs = mlm_pred.numpy(), mlm_zero_probs.numpy() if self.explicit_zero_prob else 1
+                    mvc_pred, mvc_zero_probs =  mvc_pred.numpy(), mvc_zero_probs.numpy() if self.explicit_zero_prob else 1
+                    mvc_pred_next, mvc_zero_probs_next = mvc_pred_next.numpy(), mvc_zero_probs_next.numpy() if self.explicit_zero_prob else 1
+
+                mlm_outputs[i : i + batch_size], mlm_zero_outputs[i : i + batch_size] = mlm_pred, mlm_zero_probs
+                mvc_outputs[i : i + batch_size], mvc_zero_outputs[i : i + batch_size] = mvc_pred, mvc_zero_probs
+                mvc_next_outputs[i : i + batch_size], mvc_next_zero_outputs[i : i + batch_size] = mvc_pred_next, mvc_zero_probs_next
+
+
+        if predict_expr:
+            expr_dict['mlm_expr'] = (mlm_outputs, mlm_zero_outputs)
+            expr_dict['mvc_expr'] = (mvc_outputs, mvc_zero_outputs)
+            expr_dict['mvc_next_expr'] = (mvc_next_outputs, mvc_next_zero_outputs)
+
+        return outputs, outputs_next, pert_outputs, cls_outputs, ps_outputs, expr_dict
 
