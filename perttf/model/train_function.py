@@ -582,7 +582,7 @@ def eval_testdata(
             #    time_step=0,
             #    return_np=True,
             #)
-            cell_embeddings, cell_embeddings_next, pert_preds, cls_preds, ps_preds = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
+            cell_embeddings, cell_embeddings_next, pert_preds, cls_preds, ps_preds, expr_dict = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
@@ -590,6 +590,7 @@ def eval_testdata(
                 pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
                 time_step=0,
                 return_np=True,
+                predict_expr = True
             )
 
         cell_embeddings = cell_embeddings / np.linalg.norm(
@@ -604,7 +605,9 @@ def eval_testdata(
         #adata_t.obsm["X_pert_pred"] = pert_preds
         if config.ps_weight >0:
           adata_t.obsm["ps_pred"] = ps_preds
-
+        if 'mvc_next_expr' in expr_dict:
+            adata_t.obsm["X_scGPT_next_expr"] = expr_dict['mvc_next_expr'][0]
+            adata_t.obsm["X_scGPT_next_expr_zero"] =  expr_dict['mvc_next_expr'][1]
         # require: genotype_to_index
 
         # Assuming ret_adata.obsm['X_pert_pred'] is a numpy array or can be converted to one
