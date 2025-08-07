@@ -67,7 +67,7 @@ def load_pert_embedding_from_gears(gears_path, adata,
 
 
 
-def load_pert_embedding_to_model(o_model, model_weights):
+def load_pert_embedding_to_model(o_model, model_weights, requires_grad = True):
     """
     load pretrained perturbation embeddings to model
     Args:
@@ -82,6 +82,7 @@ def load_pert_embedding_to_model(o_model, model_weights):
     if model_weights_tensor.shape != o_model.pert_encoder.embedding.weight.shape:
         raise ValueError(f"model_weights_tensor.shape {model_weights_tensor.shape} does not equal to o_model.pert_encoder.embedding.weight.shape {o_model.pert_encoder.embedding.weight.shape}")
     o_model.pert_encoder.embedding.weight.data = model_weights_tensor # torch.tensor(gears_model_subset,dtype=torch.double)
+    o_model.pert_encoder.embedding.weight.requires_grad = requires_grad
     return o_model
 
 

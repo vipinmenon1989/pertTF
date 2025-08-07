@@ -52,7 +52,6 @@ def train(model: nn.Module,
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     model.train()
     total_loss, total_mse, total_gepc = 0.0, 0.0, 0.0
     total_mse_next, total_gepc_next = 0.0, 0.0
@@ -368,7 +367,7 @@ def evaluate(model: nn.Module,
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
+    
     model.eval()
     total_loss = 0.0
     total_loss_next = 0.0
@@ -476,6 +475,7 @@ def eval_testdata(
     epoch = 0,
     eval_key = "", # titles for evaluation
     make_plots = True,
+    predict_expr = False
 ) -> Optional[Dict]:
     """evaluate the model on test dataset of adata_t"""
     model.eval()
@@ -583,7 +583,7 @@ def eval_testdata(
             #    time_step=0,
             #    return_np=True,
             #)
-            cell_embeddings, cell_embeddings_next, pert_preds, cls_preds, ps_preds = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
+            cell_embeddings, cell_embeddings_next, pert_preds, cls_preds, ps_preds, expr_dict = model.encode_batch_with_perturb(all_gene_ids,all_values.float(),
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
@@ -591,6 +591,7 @@ def eval_testdata(
                 pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
                 time_step=0,
                 return_np=True,
+                predict_expr = predict_expr
             )
 
         cell_embeddings = cell_embeddings / np.linalg.norm(
@@ -604,8 +605,12 @@ def eval_testdata(
         adata_t.obsm["X_scGPT_next"] = cell_embeddings_next
         #adata_t.obsm["X_pert_pred"] = pert_preds
         if config.ps_weight >0:
-          adata_t.obsm["ps_pred"] = ps_preds
+            adata_t.obsm["ps_pred"] = ps_preds
+        for k in expr_dict:
 
+            adata_t.obsm[k] = expr_dict[k][0]
+            if len(expr_dict[k]) > 1:
+                adata_t.obsm[k+'_zero'] =  expr_dict[k][1]
         # require: genotype_to_index
 
         # Assuming ret_adata.obsm['X_pert_pred'] is a numpy array or can be converted to one
@@ -894,6 +899,7 @@ def wrapper_train(model, config, data_gen,
                 optimizer_dict,
                 epoch = epoch,
                 logger = logger,
+                device = device
             )
         val_loss, val_loss_next, val_mre, val_mre_next, val_dab, val_cls, val_pert, val_ps = evaluate(
             model,
@@ -901,6 +907,7 @@ def wrapper_train(model, config, data_gen,
             config=config,
             vocab = vocab,
             epoch = epoch,
+            device = device
         )
         elapsed = time.time() - epoch_start_time
         if logger is not None:

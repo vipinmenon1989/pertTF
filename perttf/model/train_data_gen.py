@@ -79,7 +79,8 @@ def add_pred_layer(adata: AnnData,
         ps_matrix=np.nan_to_num(ps_matrix,nan=0.0)
     else:
         ps_exist_c=["PS"]
-        ps_matrix= [0.0] * adata_p.shape[0] # a shape of 0
+        ps_matrix= [0.0] * adata_p.shape[0]# a shape of 0
+        ps_matrix = np.array(ps_matrix) # must be an np array
     #
     if next_cell_pred == "identity":
         perturbation_labels_next = perturbation_labels_0
@@ -116,7 +117,6 @@ def add_pred_layer(adata: AnnData,
 
     target_pert=[]
     target_cell_id=[]
-
     for this_cell in adata_p.obs.index.values:
         this_cell_type = adata_p.obs.loc[this_cell]['celltype']
         this_geno_type = adata_p.obs.loc[this_cell]['genotype']
@@ -134,10 +134,8 @@ def add_pred_layer(adata: AnnData,
     #(adata_p.layers[binned_layer_key].toarray() if issparse(adata_p.layers[binned_layer_key]) else adata_p.layers[binned_layer_key])
 
     input_layers=all_counts_0 # adata.layers[binned_layer_key] #.copy()
-
     target_cell_id_index=obsf.index.get_indexer(target_cell_id)
     target_layers=input_layers[target_cell_id_index]
-
     perturbation_labels_next = target_pert
     perturbation_labels_next = np.array(perturbation_labels_next)
     # return the ps matrix next
@@ -342,7 +340,7 @@ def produce_training_datasets(adata_input, config,
 
         ps_0 = np.array(ps_0)
         ps_next_0 = np.array(ps_next_0)
-        
+        # TODO: need to make sure matrices are either not scipy sparse or implement sparse concatenations below
         if adata is None:
             adata = adata_0 #.copy()
             next_counts = next_counts_0
