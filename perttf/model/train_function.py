@@ -475,6 +475,7 @@ def eval_testdata(
     epoch = 0,
     eval_key = "", # titles for evaluation
     make_plots = True,
+    predict_expr = False
 ) -> Optional[Dict]:
     """evaluate the model on test dataset of adata_t"""
     model.eval()
@@ -590,7 +591,7 @@ def eval_testdata(
                 pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
                 time_step=0,
                 return_np=True,
-                predict_expr = True
+                predict_expr = predict_expr
             )
 
         cell_embeddings = cell_embeddings / np.linalg.norm(
@@ -604,10 +605,12 @@ def eval_testdata(
         adata_t.obsm["X_scGPT_next"] = cell_embeddings_next
         #adata_t.obsm["X_pert_pred"] = pert_preds
         if config.ps_weight >0:
-          adata_t.obsm["ps_pred"] = ps_preds
-        if 'mvc_next_expr' in expr_dict:
-            adata_t.obsm["X_scGPT_next_expr"] = expr_dict['mvc_next_expr'][0]
-            adata_t.obsm["X_scGPT_next_expr_zero"] =  expr_dict['mvc_next_expr'][1]
+            adata_t.obsm["ps_pred"] = ps_preds
+        for k in expr_dict:
+
+            adata_t.obsm[k] = expr_dict[k][0]
+            if len(expr_dict[k]) > 1:
+                adata_t.obsm[k+'_zero'] =  expr_dict[k][1]
         # require: genotype_to_index
 
         # Assuming ret_adata.obsm['X_pert_pred'] is a numpy array or can be converted to one
