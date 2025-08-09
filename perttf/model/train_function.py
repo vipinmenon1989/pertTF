@@ -865,7 +865,23 @@ def wrapper_train(model, config, data_gen,
     if save_dir is None:
         save_dir = Path(f"./save/dev_{config.dataset_name}-{time.strftime('%b%d-%H-%M')}/")
         save_dir.mkdir(parents=True, exist_ok=True)
-
+        
+    # save the current configurations before epoch starts
+    torch.save(vocab, save_dir / "vocab.pt")
+    running_parameters={
+     'cell_type_to_index': data_gen["cell_type_to_index"],
+     'genotype_to_index': data_gen["genotype_to_index"],
+     'genes': data_gen["genes"], # genes,
+     'gene_ids': data_gen["gene_ids"], # gene_ids,
+     'ps_names': data_gen["ps_names"],
+     'config': config.as_dict(), # config as dictionary
+    }
+    torch.save(running_parameters, save_dir / "running_parameters.pt")
+    import json
+    json.dump(config.as_dict(), open(save_dir / "config.json", "w"))
+    # later, use the following to load json file
+    #config_data = json.load(open(save_dir / 'config.json', 'r'))
+    
     for epoch in range(1, config.epochs + 1):
         epoch_start_time = time.time()
         train_data_pt, valid_data_pt = prepare_data(
@@ -1014,20 +1030,7 @@ def wrapper_train(model, config, data_gen,
     
     # save the best model
     torch.save(best_model.state_dict(), save_dir / "best_model.pt")
-    torch.save(vocab, save_dir / "vocab.pt")
-    running_parameters={
-     'cell_type_to_index': data_gen["cell_type_to_index"],
-     'genotype_to_index': data_gen["genotype_to_index"],
-     'genes': data_gen["genes"], # genes,
-     'gene_ids': data_gen["gene_ids"], # gene_ids,
-     'ps_names': data_gen["ps_names"],
-     'config': config.as_dict(), # config as dictionary
-    }
-    torch.save(running_parameters, save_dir / "running_parameters.pt")
-    import json
-    json.dump(config.as_dict(), open(save_dir / "config.json", "w"))
-    # later, use the following to load json file
-    #config_data = json.load(open(save_dir / 'config.json', 'r'))
+
     return best_model
 
 
