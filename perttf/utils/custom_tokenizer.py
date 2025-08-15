@@ -15,7 +15,6 @@ from torchtext.vocab import Vocab
 # from transformers.tokenization_utils import PreTrainedTokenizer
 # from transformers import AutoTokenizer, BertTokenizer
 
-from .. import logger
 
 # This function remains unchanged
 def tokenize_batch(
