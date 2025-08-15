@@ -17,8 +17,7 @@ from torchtext.vocab import Vocab
 
 from .. import logger
 
-
-
+# This function remains unchanged
 def tokenize_batch(
     data: np.ndarray,
     gene_ids: np.ndarray,
@@ -82,6 +81,7 @@ def tokenize_batch(
     return tokenized_data
 
 
+# MODIFIED to accept and return indices
 def pad_batch(
     batch: List[Tuple],
     max_len: int,
@@ -90,18 +90,24 @@ def pad_batch(
     pad_value: int = 0,
     cls_appended: bool = True,
     vocab_mod: Vocab = None,
-) -> Dict[str, torch.Tensor]:
+    sample_indices: List[np.ndarray] = None,
+) -> Tuple[Dict[str, torch.Tensor], List[np.ndarray]]:
     """
-    Pad a batch of data. Returns a list of Dict[gene_id, count].
+    Pad a batch of data.
 
     Args:
         batch (list): A list of tuple (gene_id, count).
         max_len (int): The maximum length of the batch.
         vocab (Vocab): The vocabulary containing the pad token.
         pad_token (str): The token to pad with.
+        sample_indices (List[np.ndarray], optional): A list of pre-selected
+            indices for each sample. If None, random sampling is performed
+            for samples exceeding max_len. Defaults to None.
 
     Returns:
-        Dict[str, torch.Tensor]: A dictionary of gene_id and count.
+        Tuple[Dict[str, torch.Tensor], List[np.ndarray]]: A tuple containing:
+            - A dictionary of padded tensors for 'genes' and 'values'.
+            - A list of numpy arrays with the indices used for each sample.
     """
     max_ori_len = max(len(batch[i][0]) for i in range(len(batch)))
     max_len = min(max_ori_len, max_len)
@@ -109,25 +115,38 @@ def pad_batch(
     pad_id = vocab[pad_token]
     if vocab_mod is not None:
         mod_pad_id = vocab_mod[pad_token]
+        
     gene_ids_list = []
     values_list = []
     mod_types_list = []
+    used_indices_list = []
 
     for i in range(len(batch)):
         gene_ids, values, mod_types = batch[i]
 
         if len(gene_ids) > max_len:
-            # sample max_len genes
-            if not cls_appended:
-                idx = np.random.choice(len(gene_ids), max_len, replace=False)
+            # If indices are provided for this sample, use them
+            if sample_indices is not None and i < len(sample_indices):
+                idx = sample_indices[i]
+            # Otherwise, perform random sampling
             else:
-                idx = np.random.choice(len(gene_ids) - 1, max_len - 1, replace=False)
-                idx = idx + 1
-                idx = np.insert(idx, 0, 0)
+                if not cls_appended:
+                    idx = np.random.choice(len(gene_ids), max_len, replace=False)
+                else:
+                    # sample from non-CLS tokens and add CLS token back
+                    idx = np.random.choice(len(gene_ids) - 1, max_len - 1, replace=False)
+                    idx = idx + 1
+                    idx = np.insert(idx, 0, 0)
+            
             gene_ids = gene_ids[idx]
             values = values[idx]
             if mod_types is not None:
                 mod_types = mod_types[idx]
+            used_indices_list.append(idx)
+        else:
+            # If no sampling was needed, all original indices were used
+            used_indices_list.append(np.arange(len(gene_ids)))
+
         if len(gene_ids) < max_len:
             gene_ids = torch.cat(
                 [
@@ -164,11 +183,13 @@ def pad_batch(
         "genes": torch.stack(gene_ids_list, dim=0),
         "values": torch.stack(values_list, dim=0),
     }
-    if mod_types is not None:
+    if mod_types is not None and mod_types_list:
         batch_padded["mod_types"] = torch.stack(mod_types_list, dim=0)
-    return batch_padded
+        
+    return batch_padded, used_indices_list
 
-# changed to allow gene ids to be set for a batch of data
+
+# MODIFIED to accept and return indices
 def tokenize_and_pad_batch(
     data: np.ndarray,
     gene_ids: np.ndarray,
@@ -182,13 +203,27 @@ def tokenize_and_pad_batch(
     return_pt: bool = True,
     mod_type: np.ndarray = None,
     vocab_mod: Vocab = None,
-) -> Dict[str, torch.Tensor]:
+    sample_indices: List[np.ndarray] = None,
+) -> Tuple[Dict[str, torch.Tensor], List[np.ndarray]]:
     """
-    Tokenize and pad a batch of data. Returns a list of tuple (gene_id, count).
+    Tokenize and pad a batch of data.
+
+    Args:
+        (Same as original, with the addition of sample_indices)
+        sample_indices (List[np.ndarray], optional): A list of pre-selected
+            indices for each sample. If None, random sampling is performed.
+            Defaults to None.
+
+    Returns:
+        Tuple[Dict[str, torch.Tensor], List[np.ndarray]]: A tuple containing:
+            - The dictionary of padded data ('genes', 'values').
+            - A list of the indices used for each sample.
     """
     cls_id = vocab[cls_token]
+    cls_id_mod_type = None
     if mod_type is not None:
         cls_id_mod_type = vocab_mod[cls_token]
+        
     tokenized_data = tokenize_batch(
         data,
         gene_ids,
@@ -197,10 +232,10 @@ def tokenize_and_pad_batch(
         include_zero_gene=include_zero_gene,
         cls_id=cls_id,
         mod_type=mod_type,
-        cls_id_mod_type=cls_id_mod_type if mod_type is not None else None,
+        cls_id_mod_type=cls_id_mod_type,
     )
 
-    batch_padded = pad_batch(
+    batch_padded, used_indices = pad_batch(
         tokenized_data,
         max_len,
         vocab,
@@ -208,8 +243,9 @@ def tokenize_and_pad_batch(
         pad_value,
         cls_appended=append_cls,
         vocab_mod=vocab_mod,
+        sample_indices=sample_indices,  # Pass the indices here
     )
-    return batch_padded
+    return batch_padded, used_indices
 
 # Currently still the same as scGPT, but maybe customize in the future
 def random_mask_value(
