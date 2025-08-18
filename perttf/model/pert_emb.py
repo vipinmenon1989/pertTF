@@ -182,7 +182,7 @@ def calculate_avg_cosine_similarity(input_mat,pd_pert_f):
 
     cs_nx1_1d = cs_nx1.flatten('F')
 
-    perturb_f_p=pd_pert_f[ pd_pert_f['type'] == 'target']
+    perturb_f_p=pd_pert_f[ pd_pert_f['type'] == 'pert_source']
     perturb_f_p.shape
 
     perturb_f_p['cosine_sim_matrix_column_avg'] = cs_nx1_1d
