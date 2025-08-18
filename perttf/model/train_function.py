@@ -24,7 +24,7 @@ from scgpt.loss import (
     masked_relative_error,
     criterion_neg_log_bernoulli,
 )
-from utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
+from perttf.utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
 from scgpt.model import TransformerModel, AdversarialDiscriminator
 
 import matplotlib.pyplot as plt

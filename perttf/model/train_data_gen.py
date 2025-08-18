@@ -16,7 +16,7 @@ from torchtext._torchtext import (
 )
 
 import scgpt as scg
-from utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
+from perttf.utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
 from scgpt import SubsetsBatchSampler
 
 def add_pred_layer(adata: AnnData, 
