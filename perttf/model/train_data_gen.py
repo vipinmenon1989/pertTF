@@ -17,6 +17,7 @@ from torchtext._torchtext import (
 
 import scgpt as scg
 from perttf.utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
+from perttf.utils.pert_data_loader import PertBatchCollator, PertTFDataset, PertTFDataManager, add_batch_info
 from scgpt import SubsetsBatchSampler
 
 def add_pred_layer(adata: AnnData, 
@@ -252,7 +253,18 @@ def produce_training_datasets(adata_input, config,
     next_cell_pred:
         Whether to generate next cell fate prediction. Default is "identity" (simply duplicating input_layer_key).
     """
-                                  
+    test_manager = PertTFDataManager(adata_input, config, cell_type_to_index = cell_type_to_index, genotype_to_index= genotype_to_index, expr_layer= input_layer_key)
+    t_data, t_loader, v_data, v_loader, data_info = test_manager.get_train_valid_loaders(full_token_validate=True)             
+    data_info['train_loader'] = t_loader
+    data_info['valid_loader'] = v_loader
+    data_info['train_data'] = t_data
+    data_info['valid_data'] = v_data
+    data_info['cell_ids_train'] = t_data.get_adata_subset().obs.index
+    data_info['adata_sorted'] = v_data.get_adata_subset(next_cell_pred='pert')
+    data_info['adata_manager'] = test_manager
+    data_info['n_perturb'] = data_info['num_genotypes']
+    data_info['n_cls'] = data_info['num_cell_types']
+    return data_info
     # add necessary columns to adata
     adata_input.var["gene_name"] = adata_input.var.index.tolist()
 

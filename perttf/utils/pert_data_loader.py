@@ -17,7 +17,6 @@ from torchtext._torchtext import (
 )
 
 from perttf.utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
-from perttf.model.train_function import train, eval_testdata, evaluate, define_wandb_metrcis
 
 
 def add_batch_info(adata):
@@ -84,8 +83,9 @@ class PertTFDataset(Dataset):
         self.indices = indices
         self.next_cell_dict = self._create_next_cell_pool()
 
-    def get_adata_subset(self):
-        if self.next_cell_pred != "pert":
+    def get_adata_subset(self, next_cell_pred = 'identity'):
+        assert next_cell_pred in ['pert', 'identity'], 'next_cell_pred can only be identity or pert'
+        if next_cell_pred == "identity":
             return self.adata[self.indices,].copy()
         else:
             adata_small = self.adata[self.indices,].copy()
@@ -285,11 +285,23 @@ class PertTFDataManager:
     This class encapsulates all data-related setup, including vocab, mappings,
     and provides methods to get data loaders for training and cross-validation.
     """
-    def __init__(self, adata: AnnData, config: object, ps_columns: list = None):
+    def __init__(self, 
+                 adata: AnnData, 
+                 config: object, 
+                 ps_columns: list = None,
+                 cell_type_to_index: dict = None, 
+                 vocab: Vocab = None,
+                 genotype_to_index: dict = None, 
+                 expr_layer: str = 'X_binned',
+                 next_cell_pred_type: str = "identity", 
+                 only_sample_wt_pert: bool = False):
+        
         self.adata = adata
         self.config = config
         self.ps_columns = ps_columns # perhaps this can incorporated into config
-
+        self.expr_layer = expr_layer
+        self.only_sample_wt_pert = config.get('only_sample_wt_pert', only_sample_wt_pert)
+        self.next_cell_pred_type = config.get('next_cell_pred_type', next_cell_pred_type)
         # --- Perform one-time data setup ---
         print("Initializing AnnDataManager: Creating vocab and mappings...")
         #if "batch_id" not in self.adata.obs.columns:
@@ -297,17 +309,18 @@ class PertTFDataManager:
           #  self.adata.obs["batch_id"] = self.adata.obs["str_batch"].astype("category").cat.codes
         
         # Create and store mappings and vocab as instance attributes
-        self.cell_type_to_index = {t: i for i, t in enumerate(self.adata.obs['celltype'].unique())}
-        self.genotype_to_index = {t: i for i, t in enumerate(self.adata.obs['genotype'].unique())}
+        self.cell_type_to_index = {t: i for i, t in enumerate(self.adata.obs['celltype'].unique())} if cell_type_to_index is None else cell_type_to_index
+        self.genotype_to_index = {t: i for i, t in enumerate(self.adata.obs['genotype'].unique())} if genotype_to_index is None else genotype_to_index
         self.num_cell_types = len(self.cell_type_to_index)
         self.num_genotypes = len(self.genotype_to_index)
         #self.num_batch_types = len(self.adata.obs["batch_id"].unique())
         add_batch_info(self.adata)
         self.num_batch_types = len(self.adata.obs["batch_id"].unique())
         self.genes = self.adata.var.index.tolist()
-        self.vocab = Vocab(VocabPybind(self.genes + self.config.special_tokens, None))
+        self.vocab = Vocab(VocabPybind(self.genes + self.config.special_tokens, None)) if vocab is None else vocab
         self.vocab.set_default_index(self.vocab["<pad>"])
         self.gene_ids = np.array(self.vocab(self.genes), dtype=int)
+
         # The collators can be created once and reused
         ## first collator is the training collator, with a context window set in config
         self.collator = PertBatchCollator(self.vocab, self.gene_ids, **config)
@@ -326,14 +339,18 @@ class PertTFDataManager:
             'cell_type_to_index': self.cell_type_to_index,
             'genotype_to_index': self.genotype_to_index
         }
-        
+        if self.ps_columns is not None:
+            data_gen['ps_names']=[x for x in self.ps_columns if x in self.data.obs.columns]
+        else:
+            data_gen['ps_names']=["PS"]
+                
         return data_gen
 
     def _create_dataset_from_indices(self, adata, indices):
         """A helper function to create PertTFDataset from underlying adata."""
         perttf_dataset = PertTFDataset(
             adata, indices=indices, cell_type_to_index=self.cell_type_to_index, genotype_to_index=self.genotype_to_index,
-            ps_columns=self.ps_columns, next_cell_pred=self.config.next_cell_pred_type
+            ps_columns=self.ps_columns, next_cell_pred=self.next_cell_pred_type , expr_layer=self.expr_layer, only_sample_wt_pert=self.only_sample_wt_pert
         )
         return perttf_dataset
 
@@ -363,9 +380,8 @@ class PertTFDataManager:
         train_loader, valid_loader = ( 
                 self._create_loaders_from_dataset(train_data), 
                 self._create_loaders_from_dataset(valid_data, full_token_validate)
-        )
-        valid_adata = valid_data.get_adata_subset()       
-        return train_loader, valid_loader, valid_adata, self.get_adata_info_dict()
+        )     
+        return train_data, train_loader, valid_data, valid_loader, self.get_adata_info_dict()
 
     def get_k_fold_split_loaders(self, n_splits: int = 5):
         """
@@ -386,8 +402,7 @@ class PertTFDataManager:
                 self._create_loaders_from_dataset(train_data), 
                 self._create_loaders_from_dataset(valid_data, self.full_token_validate)
             )
-            valid_adata = valid_data.get_adata_subset()
-            yield train_loader, valid_loader, valid_adata, self.get_adata_info_dict()
+            yield train_data, train_loader, valid_data, valid_loader, self.get_adata_info_dict()
 
 
 

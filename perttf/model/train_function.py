@@ -30,6 +30,7 @@ from scgpt.model import TransformerModel, AdversarialDiscriminator
 import matplotlib.pyplot as plt
 
 from perttf.model.train_data_gen import prepare_data,prepare_dataloader
+from perttf.utils.set_optimizer import create_optimizer_dict
 
 def train(model: nn.Module,
           loader: DataLoader,
@@ -798,66 +799,10 @@ def wrapper_train(model, config, data_gen,
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    scaler = torch.cuda.amp.GradScaler(enabled=config.amp)
-
-    DAB_separate_optim = True if config.dab_weight >0 else False
-
     num_batch_types = data_gen['num_batch_types']
     vocab = data_gen['vocab']
 
-    if config.ADV:
-        discriminator = AdversarialDiscriminator(
-            d_model=config.layer_size, # embsize
-            n_cls=num_batch_types,
-        ).to(device)
-        print(discriminator)
-    else:
-        discriminator = None
-
-    optimizer = torch.optim.Adam(
-        model.parameters(), lr=config.lr, eps=1e-4 if config.amp else 1e-8
-    )
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, gamma=config.schedule_ratio)
-
-    if DAB_separate_optim:
-        optimizer_dab = torch.optim.Adam(model.parameters(), lr=config.lr)
-        scheduler_dab = torch.optim.lr_scheduler.StepLR(
-            optimizer_dab, config.schedule_interval, gamma=config.schedule_ratio
-        )
-    else:
-        optimizer_dab = None
-        scheduler_dab = None
-
-    if config.ADV:
-        optimizer_E = torch.optim.Adam(model.parameters(), lr=config.lr_ADV)
-        scheduler_E = torch.optim.lr_scheduler.StepLR(
-            optimizer_E, config.schedule_interval, gamma=config.schedule_ratio
-        )
-        optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr_ADV)
-        scheduler_D = torch.optim.lr_scheduler.StepLR(
-            optimizer_D, config.schedule_interval, gamma=config.schedule_ratio
-        )
-    else:
-        optimizer_E = None
-        scheduler_E = None
-        optimizer_D = None
-        scheduler_D = None
-
-    optimizer_dict={
-        "scaler": scaler,
-        "discriminator": discriminator,
-        "optimizer": optimizer,
-        "scheduler": scheduler,
-        "optimizer_dab": optimizer_dab,
-        "scheduler_dab": scheduler_dab,
-        "optimizer_E": optimizer_E,
-        "scheduler_E": scheduler_E,
-        "optimizer_D": optimizer_D,
-        "scheduler_D": scheduler_D,
-    }
-
-
-
+    optimizer_dict = create_optimizer_dict(model, device, config, num_batch_types)
     best_val_loss = float("inf")
     best_avg_bio = 0.0
     best_model = None
@@ -882,30 +827,10 @@ def wrapper_train(model, config, data_gen,
     json.dump(config.as_dict(), open(save_dir / "config.json", "w"))
     # later, use the following to load json file
     #config_data = json.load(open(save_dir / 'config.json', 'r'))
-    
+    train_loader, valid_loader = data_gen['train_loader'], data_gen['valid_loader']
     for epoch in range(1, config.epochs + 1):
         epoch_start_time = time.time()
-        train_data_pt, valid_data_pt = prepare_data(
-            data_gen,
-            config,
-            sort_seq_batch=config.per_seq_batch_sample,
-            epoch = epoch)
-        train_loader = prepare_dataloader(
-            train_data_pt,
-            batch_size= config.batch_size,
-            config=config,
-            shuffle=True, # False, # default false
-            intra_domain_shuffle=True,
-            drop_last=False,
-        )
-        valid_loader = prepare_dataloader(
-            valid_data_pt,
-            batch_size=config.batch_size,
-            config=config,
-            shuffle=False,
-            intra_domain_shuffle=False,
-            drop_last=False,
-        )
+        
 
         if config.do_train:
             train(
@@ -1021,13 +946,13 @@ def wrapper_train(model, config, data_gen,
             wandb.log(metrics_to_log)
             # wandb.log({"avg_bio": results.get("avg_bio", 0.0)})
 
-        scheduler.step()
+        optimizer_dict['scheduler'].step()
 
-        if DAB_separate_optim:
-            scheduler_dab.step()
+        if optimizer_dict['DAB_separate_optim']:
+            optimizer_dict['scheduler_dab'].step()
         if config.ADV:
-            scheduler_D.step()
-            scheduler_E.step()
+            optimizer_dict['scheduler_D'].step()
+            optimizer_dict['scheduler_E'].step()
     
     # save the best model
     torch.save(best_model.state_dict(), save_dir / "best_model.pt")

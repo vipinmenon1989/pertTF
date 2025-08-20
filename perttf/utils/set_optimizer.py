@@ -55,5 +55,6 @@ def create_optimizer_dict(model, device, config, num_batch_types = -1):
         "scheduler_E": scheduler_E,
         "optimizer_D": optimizer_D,
         "scheduler_D": scheduler_D,
+        'DAB_separate_optim': DAB_separate_optim
     }
     return optimizer_dict
