@@ -263,7 +263,7 @@ class PertTFDataManager:
     def __init__(self, adata: AnnData, config: object, ps_columns: list = None):
         self.adata = adata
         self.config = config
-        self.ps_columns = ps_columns
+        self.ps_columns = ps_columns # perhaps this can incorporated into config
 
         # --- Perform one-time data setup ---
         print("Initializing AnnDataManager: Creating vocab and mappings...")
