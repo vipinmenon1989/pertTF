@@ -15,23 +15,27 @@ from torchtext.vocab import Vocab
 from torchtext._torchtext import (
     Vocab as VocabPybind,
 )
-import scanpy as sc
-import scgpt as scg
-from scgpt.model import TransformerModel, AdversarialDiscriminator
-import wandb
-import matplotlib.pyplot as plt
 
-# Assuming these functions are available from your original code
-from custom_tokenizer import tokenize_and_pad_batch, random_mask_value
+from perttf.utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
 from perttf.model.train_function import train, eval_testdata, evaluate, define_wandb_metrcis
 
 
-# STEPS TO TRAIN:
+def add_batch_info(adata):
+    """helper function to add batch effect columns into adata"""
+    if "batch" not in adata.obs.columns: 
+        batch_ids_0=random.choices( [0,1], k=adata.shape[0])
+        adata.obs["batch"]=batch_ids_0
+    if "batch_id" not in adata.obs.columns: 
+        adata.obs["str_batch"] = adata.obs["batch"]
+        adata.obs["str_batch"] = adata.obs["str_batch"].astype(str)
+        adata.obs["batch_id"] = adata.obs["str_batch"].astype("category").cat.codes.values
 
-# create a PertTFDataManager First and use it generate loaders, validation and data_gen dictionary
-# Pass train_loader, valid_loader and data_gen to the wrapper_train either once or as part of kfold loop
+"""
+STEPS TO TRAIN:
+create a PertTFDataManager First and use it generate loaders, validation and data_gen dictionary
+Pass train_loader, valid_loader and data_gen to the wrapper_train either once or as part of kfold loop
 
-
+"""
 
 class PertTFDataset(Dataset):
     """
@@ -39,8 +43,12 @@ class PertTFDataset(Dataset):
     """
     def __init__(self, adata: AnnData, indices: np.ndarray = None, 
                  cell_type_to_index: dict = None, genotype_to_index: dict = None, expr_layer: str = 'X_binned',
-                 ps_columns: list = None, next_cell_pred: str = "identity"):
+                 ps_columns: list = None, next_cell_pred: str = "identity", only_sample_wt_pert: bool = False):
         """
+        The PertTFDataset serves to interface with pytorch Dataloaders 
+        Its main function is to subset and break anndata down into single samples
+        customized with the ability to sample a perturbed sample for "WT" cells
+
         Args:
             adata (AnnData): The full AnnData object, may be shared by multiple objects.
             indices (np.ndarray): The indices of the adata object that belong to this dataset (e.g., train or valid).
@@ -49,6 +57,7 @@ class PertTFDataset(Dataset):
             genotype_to_index (dict): Mapping from genotype string to integer index.
             ps_columns (list, optional): List of columns in obs to use for 'ps' scores.
             next_cell_pred (str): The mode for next cell prediction ("identity" or "pert").
+            only_sample_wt_pert: only random sample next cell for wild type cells
         """
         self.adata = adata
         self._check_anndata_content()
@@ -65,17 +74,11 @@ class PertTFDataset(Dataset):
         # IMPORTANT: This dictionary only contains cells from the current data split (train/valid)
         # to prevent data leakage.
         self.next_cell_dict = self._create_next_cell_pool()
-
+        self.only_sample_wt_pert = only_sample_wt_pert
 
     def _check_anndata_content(self):
         assert 'genotype' in self.adata.obs.columns and 'celltype' in self.adata.obs.columns, 'no genotype or celltype column found in anndata'
-        if "batch" not in self.adata.obs.columns: 
-            batch_ids_0=random.choices( [0,1], k=self.adata.shape[0])
-            self.adata.obs["batch"]=batch_ids_0
-        if "batch_id" not in self.adata.obs.columns: 
-            self.adata.obs["str_batch"] = self.adata.obs["batch"]
-            self.adata.obs["str_batch"] = self.adata.obs["str_batch"].astype(str)
-            self.adata.obs["batch_id"] = self.adata.obs["str_batch"].astype("category").cat.codes.values
+        add_batch_info(self.adata)
         
     def set_new_indices(self, indices):
         self.indices = indices
@@ -88,14 +91,16 @@ class PertTFDataset(Dataset):
             adata_small = self.adata[self.indices,].copy()
             next_cell_id_list = []
             next_pert_list = []
+            next_cell_global_idx_list = []
             for i in self.indices:
                 current_cell_obs = self.adata.obs.iloc[i]
                 next_cell_id, next_pert_label_str = self._sample_next_cell(current_cell_obs)
                 next_cell_id_list.append(next_cell_id)
                 next_pert_list.append(next_pert_label_str)
+                next_cell_global_idx_list.append(self.adata.obs.index.get_loc(next_cell_id))
             adata_small.obs['genotype_next'] = next_pert_list
             adata_small.obs['next_cell_id'] = next_cell_id_list
-
+            adata_small.layers['next_expr'] = self.adata.layers[self.expr_layer][next_cell_global_idx_list]
         return adata_small
 
     def __len__(self):
@@ -141,7 +146,7 @@ class PertTFDataset(Dataset):
             # For non-WT, the "next" state is the same perturbation
             next_pert_value = current_genotype
 
-        if next_pert_value == current_genotype:
+        if next_pert_value == current_genotype and self.only_sample_wt_pert:
             return current_cell_id, next_pert_value
         else:
             # Sample a random cell with the target cell type and genotype
@@ -197,16 +202,29 @@ class PertTFDataset(Dataset):
             "perturbation_labels_next": pert_label_next,
             "ps": ps_scores,
             "ps_next": ps_scores_next,
+            "index": current_cell_global_idx,
+            "next_index": next_cell_global_idx,
+            'name': current_cell_obs.name,
+            'next_name': next_cell_id
         }
 
-class CustomCollator:
+
+class PertBatchCollator:
     """
     A collate function for the DataLoader that tokenizes, pads, and masks batches on the fly.
     """
-    def __init__(self, config: object, vocab: object, gene_ids: np.ndarray):
+    def __init__(self,  vocab: object, gene_ids: np.ndarray, full_tokenize: bool = False, **config):
         self.config = config
         self.vocab = vocab
         self.gene_ids = gene_ids
+        self.full_tokenize = full_tokenize
+        self.append_cls = config.get('append_cls', True)
+        self.include_zero_gene = config.get('include_zero_gene', True)
+        self.max_seq_len = config.get('max_seq_len', 3000)
+        self.pad_token = config.get('pad_token', '<pad>')
+        self.pad_value = config.get('pad_value', -2)
+        self.mask_ratio = config.get('mask_ratio', 0.15)
+        self.mask_value = config.get('mask_value', -1)
 
     def __call__(self, batch: list) -> dict:
         """
@@ -217,34 +235,41 @@ class CustomCollator:
         expr_next_list = [item['expr_next'] for item in batch]
         
         # 2. Tokenize and pad the expression data for the current batch
-        tokenized_train, gene_idx_list = tokenize_and_pad_batch(
-            np.array(expr_list), self.gene_ids, max_len=self.config.max_seq_len,
-            vocab=self.vocab, pad_token=self.config.pad_token, pad_value=self.config.pad_value,
-            append_cls=True, include_zero_gene=True
+        # max seq len determines the context window for pertTF transformer modeling
+        # during validation and predictions, this window may be around all genes with expression
+        max_seq_len = self.max_seq_len if not self.full_tokenize else len(self.gene_ids) + self.append_cls
+
+        tokenized, gene_idx_list = tokenize_and_pad_batch(
+            np.array(expr_list), self.gene_ids, max_len=max_seq_len,
+            vocab=self.vocab, pad_token=self.pad_token, pad_value=self.pad_value,
+            append_cls=self.append_cls, include_zero_gene=self.include_zero_gene
         )
-        tokenized_train_next, _ = tokenize_and_pad_batch(
-            np.array(expr_next_list), self.gene_ids, max_len=self.config.max_seq_len,
-            vocab=self.vocab, pad_token=self.config.pad_token, pad_value=self.config.pad_value,
-            append_cls=True, include_zero_gene=True, sample_indices=gene_idx_list
+        tokenized_next, _ = tokenize_and_pad_batch(
+            np.array(expr_next_list), self.gene_ids, max_len=max_seq_len,
+            vocab=self.vocab, pad_token=self.pad_token, pad_value=self.pad_value,
+            append_cls=self.append_cls, include_zero_gene=self.include_zero_gene, sample_indices=gene_idx_list
         )
         
         # 3. Apply random masking for this batch
         masked_values = random_mask_value(
-            tokenized_train["values"], mask_ratio=self.config.mask_ratio,
-            mask_value=self.config.mask_value, pad_value=self.config.pad_value,
+            tokenized["values"], mask_ratio=self.mask_ratio,
+            mask_value=self.mask_value, pad_value=self.pad_value,
         )
 
         # 4. Collate all other labels into tensors
         collated_batch = {
-            "gene_ids": tokenized_train["genes"],
+            "gene_ids": tokenized["genes"],
             "values": masked_values,
-            "target_values": tokenized_train["values"],
-            "target_values_next": tokenized_train_next["values"],
+            "target_values": tokenized["values"],
+            "target_values_next": tokenized_next["values"],
         }
         
         # Stack scalar or vector labels from each item in the batch
         for key in batch[0].keys():
-            if key not in ["expr", "expr_next"]:
+            if 'name' in key:
+                values = [item[key] for item in batch]
+                collated_batch[key] = values
+            elif key not in ["expr", "expr_next"]:
                 values = [item[key] for item in batch]
                 tensor = torch.from_numpy(np.array(values))
                 # Ensure labels are long type and scores are float
@@ -256,7 +281,7 @@ class CustomCollator:
 
 class PertTFDataManager:
     """
-    Manages data loading, preprocessing, and splitting for an AnnData object.
+    Manages data loading, preprocessing, and splitting using a AnnData object.
     This class encapsulates all data-related setup, including vocab, mappings,
     and provides methods to get data loaders for training and cross-validation.
     """
@@ -277,25 +302,20 @@ class PertTFDataManager:
         self.num_cell_types = len(self.cell_type_to_index)
         self.num_genotypes = len(self.genotype_to_index)
         #self.num_batch_types = len(self.adata.obs["batch_id"].unique())
-        if "batch" not in self.adata.obs.columns: 
-            batch_ids_0=random.choices( [0,1], k=self.adata.shape[0])
-            self.adata.obs["batch"]=batch_ids_0
-        if "batch_id" not in self.adata.obs.columns: 
-            self.adata.obs["str_batch"] = self.adata.obs["batch"]
-            self.adata.obs["str_batch"] = self.adata.obs["str_batch"].astype(str)
-            self.adata.obs["batch_id"] = self.adata.obs["str_batch"].astype("category").cat.codes.values
-            
+        add_batch_info(self.adata)
         self.num_batch_types = len(self.adata.obs["batch_id"].unique())
         self.genes = self.adata.var.index.tolist()
         self.vocab = Vocab(VocabPybind(self.genes + self.config.special_tokens, None))
         self.vocab.set_default_index(self.vocab["<pad>"])
         self.gene_ids = np.array(self.vocab(self.genes), dtype=int)
-        
-        # The collator can be created once and reused
-        self.collator = CustomCollator(self.config, self.vocab, self.gene_ids)
+        # The collators can be created once and reused
+        ## first collator is the training collator, with a context window set in config
+        self.collator = PertBatchCollator(self.vocab, self.gene_ids, **config)
+        ## full collator may be used for validation or inference
+        self.full_token_collator = PertBatchCollator( self.vocab, self.gene_ids, full_tokenize=True, **config)
         print("Initialization complete.")
 
-    def get_adata_input_dict(self):
+    def get_adata_info_dict(self):
         data_gen = { 
             'genes': self.genes,
             'gene_ids': self.gene_ids,
@@ -309,40 +329,45 @@ class PertTFDataManager:
         
         return data_gen
 
-    def _create_dataset_from_indices(self, train_indices, valid_indices):
-        """A helper function to create datasets and dataloaders from index arrays."""
-        train_dataset = PertTFDataset(
-            self.adata, indices=train_indices, cell_type_to_index=self.cell_type_to_index, genotype_to_index=self.genotype_to_index,
+    def _create_dataset_from_indices(self, adata, indices):
+        """A helper function to create PertTFDataset from underlying adata."""
+        perttf_dataset = PertTFDataset(
+            adata, indices=indices, cell_type_to_index=self.cell_type_to_index, genotype_to_index=self.genotype_to_index,
             ps_columns=self.ps_columns, next_cell_pred=self.config.next_cell_pred_type
         )
-        valid_dataset = PertTFDataset(
-            self.adata, indices=valid_indices, cell_type_to_index=self.cell_type_to_index, genotype_to_index=self.genotype_to_index,
-            ps_columns=self.ps_columns, next_cell_pred=self.config.next_cell_pred_type
-        )
-        return train_dataset, valid_dataset
+        return perttf_dataset
 
-    def _create_loaders_from_dataset(self, train_dataset, valid_dataset):
-        """A helper function to create datasets and dataloaders from index arrays."""     
-        train_loader = DataLoader(
-            train_dataset, batch_size=self.config.batch_size, shuffle=True,
-            num_workers=4, collate_fn=self.collator, pin_memory=True
+    def _create_loaders_from_dataset(self, dataset, full_token_collator = False):
+        """A helper function to create dataloaders from PertTFDataset."""    
+        collator = self.collator if not full_token_collator else self.full_token_collator 
+        loader = DataLoader(
+            dataset, batch_size=self.config.batch_size, shuffle=True,
+            num_workers=4, collate_fn=collator, pin_memory=True
         )
-        valid_loader = DataLoader(
-            valid_dataset, batch_size=self.config.batch_size, shuffle=False,
-            num_workers=4, collate_fn=self.collator, pin_memory=True
-        )
-        return train_loader, valid_loader
+        return loader
 
-    def get_dataloaders(self, test_size: float = 0.1):
+    def get_full_data_loader(self, full_token = False):
+        full_data = self._create_dataset_from_indices(np.arange(self.adata.n_obs))
+        full_loader = self._create_loaders_from_dataset(full_data, full_token)
+        return full_loader
+
+    def get_train_valid_loaders(self, test_size: float = 0.1, full_token_validate  = False):
         """Provides a single, standard train/validation split."""
         print(f"Creating a single train/validation split (test_size={test_size})...")
         indices = np.arange(self.adata.n_obs)
         train_indices, valid_indices = train_test_split(indices, test_size=test_size, shuffle=True)
-        train_data, valid_data = self._create_dataset_from_indices(train_indices, valid_indices)
-        valid_adata = valid_data.get_adata_subset()
-        return self._create_loaders_from_dataset(train_data, valid_data), valid_adata, self.get_adata_input_dict()
+        train_data, valid_data = (
+                self._create_dataset_from_indices(self.adata, train_indices), 
+                self._create_dataset_from_indices(self.adata, valid_indices)
+        )
+        train_loader, valid_loader = ( 
+                self._create_loaders_from_dataset(train_data), 
+                self._create_loaders_from_dataset(valid_data, full_token_validate)
+        )
+        valid_adata = valid_data.get_adata_subset()       
+        return train_loader, valid_loader, valid_adata, self.get_adata_info_dict()
 
-    def k_fold_split(self, n_splits: int = 5):
+    def get_k_fold_split_loaders(self, n_splits: int = 5):
         """
         An iterator that yields train and validation dataloaders for each fold
         in a k-fold cross-validation setup.
@@ -353,9 +378,16 @@ class PertTFDataManager:
         
         for fold, (train_indices, valid_indices) in enumerate(kf.split(indices)):
             print(f"--- Yielding data loaders for Fold {fold+1}/{n_splits} ---")
-            train_data, valid_data = self._create_dataset_from_indices(train_indices, valid_indices)
+            train_data, valid_data = (
+                self._create_dataset_from_indices(self.adata, train_indices), 
+                self._create_dataset_from_indices(self.adata, valid_indices)
+            )
+            train_loader, valid_loader = ( 
+                self._create_loaders_from_dataset(train_data), 
+                self._create_loaders_from_dataset(valid_data, self.full_token_validate)
+            )
             valid_adata = valid_data.get_adata_subset()
-            yield self._create_loaders_from_dataset(train_data, valid_data), valid_adata, self.get_adata_input_dict()
+            yield train_loader, valid_loader, valid_adata, self.get_adata_info_dict()
 
 
 
