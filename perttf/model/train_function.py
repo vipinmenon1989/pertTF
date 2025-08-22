@@ -333,6 +333,10 @@ def train(model: nn.Module,
             total_dab = 0
             total_adv_E = 0
             total_adv_D = 0
+            total_cls = 0
+            total_pert  = 0
+            total_ps  = 0
+
             start_time = time.time()
 
 

@@ -1,6 +1,9 @@
 from typing import List, Tuple, Dict, Union, Optional, Literal
 import time
 import copy
+from operator import itemgetter
+
+
 from sklearn.model_selection import train_test_split, KFold
 import torch
 import numpy as np
@@ -15,7 +18,7 @@ from torchtext.vocab import Vocab
 from torchtext._torchtext import (
     Vocab as VocabPybind,
 )
-
+from sklearn.model_selection._split import _BaseKFold
 from perttf.utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
 
 
@@ -45,8 +48,8 @@ class PertTFDataset(Dataset):
                  ps_columns: list = None, next_cell_pred: str = "identity", only_sample_wt_pert: bool = False):
         """
         The PertTFDataset serves to interface with pytorch Dataloaders 
-        Its main function is to subset and break anndata down into single samples
-        customized with the ability to sample a perturbed sample for "WT" cells
+        Its main function is to subset and extract single samples from a single Anndata object that is in-memory
+        customized with the ability to sample a Perturbed sample for "WT" samples.
 
         Args:
             adata (AnnData): The full AnnData object, may be shared by multiple objects.
@@ -167,6 +170,9 @@ class PertTFDataset(Dataset):
         # 2. Get expression data for the current cell
         binned_layer_key = self.expr_layer
 
+        curr_gene = self.adata.var.index
+
+
         current_expr = self.adata.layers[binned_layer_key][current_cell_global_idx]
         if issparse(current_expr):
             current_expr = current_expr.toarray().flatten()
@@ -177,6 +183,9 @@ class PertTFDataset(Dataset):
         
         # 4. Get expression data for the next cell
         next_expr = self.adata.layers[binned_layer_key][next_cell_global_idx]
+
+        next_gene = self.adata.var.index
+
         if issparse(next_expr):
             next_expr = next_expr.toarray().flatten()
 
@@ -195,6 +204,8 @@ class PertTFDataset(Dataset):
         return {
             "expr": current_expr,
             "expr_next": next_expr,
+            "genes": curr_gene,
+            "next_genes": next_gene,
             "celltype_labels": cell_label,
             "perturbation_labels": pert_label,
             "batch_labels": batch_label,
@@ -230,15 +241,18 @@ class PertBatchCollator:
         """
         Processes a list of samples from the Dataset into a single batch tensor.
         """
-        # 1. Separate the components of the batch
-        expr_list = [item['expr'] for item in batch]
-        expr_next_list = [item['expr_next'] for item in batch]
-        
+
+        # Define which items to get from each dictionary
+        get_values = itemgetter('expr', 'expr_next', 'genes', 'next_genes')
+        # Create an iterator of tuples, then unzip them into four separate lists
+        expr_list, expr_next_list, gene_list, gene_next_list = map(list, zip(*(get_values(item) for item in batch)))
+
         # 2. Tokenize and pad the expression data for the current batch
         # max seq len determines the context window for pertTF transformer modeling
         # during validation and predictions, this window may be around all genes with expression
         max_seq_len = self.max_seq_len if not self.full_tokenize else len(self.gene_ids) + self.append_cls
 
+        # TODO: These functions may need to be modified to accomodate inputs w differing number of genes
         tokenized, gene_idx_list = tokenize_and_pad_batch(
             np.array(expr_list), self.gene_ids, max_len=max_seq_len,
             vocab=self.vocab, pad_token=self.pad_token, pad_value=self.pad_value,
@@ -259,6 +273,7 @@ class PertBatchCollator:
         # 4. Collate all other labels into tensors
         collated_batch = {
             "gene_ids": tokenized["genes"],
+            "next_gene_ids": tokenized_next["genes"],
             "values": masked_values,
             "target_values": tokenized["values"],
             "target_values_next": tokenized_next["values"],
@@ -269,7 +284,7 @@ class PertBatchCollator:
             if 'name' in key:
                 values = [item[key] for item in batch]
                 collated_batch[key] = values
-            elif key not in ["expr", "expr_next"]:
+            elif key not in ["expr", "expr_next"] and key not in ['genes', 'next_genes']:
                 values = [item[key] for item in batch]
                 tensor = torch.from_numpy(np.array(values))
                 # Ensure labels are long type and scores are float
@@ -279,9 +294,9 @@ class PertBatchCollator:
     
     
 
-class PertTFDataManager:
+class PertTFUniDataManager:
     """
-    Manages data loading, preprocessing, and splitting using a AnnData object.
+    Manages data loading, preprocessing, and splitting using a single (Uni) AnnData object.
     This class encapsulates all data-related setup, including vocab, mappings,
     and provides methods to get data loaders for training and cross-validation.
     """
@@ -289,7 +304,7 @@ class PertTFDataManager:
                  adata: AnnData, 
                  config: object, 
                  ps_columns: list = None,
-                 cell_type_to_index: dict = None, 
+                 celltype_to_index: dict = None, 
                  vocab: Vocab = None,
                  genotype_to_index: dict = None, 
                  expr_layer: str = 'X_binned',
@@ -297,23 +312,22 @@ class PertTFDataManager:
                  only_sample_wt_pert: bool = False):
         
         self.adata = adata
+        self.indices = np.arange(self.adata.n_obs)
         self.config = config
         self.ps_columns = ps_columns # perhaps this can incorporated into config
         self.expr_layer = expr_layer
         self.only_sample_wt_pert = config.get('only_sample_wt_pert', only_sample_wt_pert)
         self.next_cell_pred_type = config.get('next_cell_pred_type', next_cell_pred_type)
         # --- Perform one-time data setup ---
-        print("Initializing AnnDataManager: Creating vocab and mappings...")
+        print("Initializing PertTFUniDataManager: Creating vocab and mappings...")
         #if "batch_id" not in self.adata.obs.columns:
          #   self.adata.obs["str_batch"] = "batch_0"
           #  self.adata.obs["batch_id"] = self.adata.obs["str_batch"].astype("category").cat.codes
         
         # Create and store mappings and vocab as instance attributes
-        self.cell_type_to_index = {t: i for i, t in enumerate(self.adata.obs['celltype'].unique())} if cell_type_to_index is None else cell_type_to_index
-        self.genotype_to_index = {t: i for i, t in enumerate(self.adata.obs['genotype'].unique())} if genotype_to_index is None else genotype_to_index
-        self.num_cell_types = len(self.cell_type_to_index)
-        self.num_genotypes = len(self.genotype_to_index)
-        #self.num_batch_types = len(self.adata.obs["batch_id"].unique())
+                #self.num_batch_types = len(self.adata.obs["batch_id"].unique())
+        self.set_genotype_index(genotype_to_index= genotype_to_index)
+        self.set_celltype_index(celltype_to_index= celltype_to_index)
         add_batch_info(self.adata)
         self.num_batch_types = len(self.adata.obs["batch_id"].unique())
         self.genes = self.adata.var.index.tolist()
@@ -324,9 +338,18 @@ class PertTFDataManager:
         # The collators can be created once and reused
         ## first collator is the training collator, with a context window set in config
         self.collator = PertBatchCollator(self.vocab, self.gene_ids, **config)
-        ## full collator may be used for validation or inference
+        ## full collator may be used for validation or inference 
+        ## This may be very slow for full gene set, scaling is roughly 2x context length -> 3.6x time, 3-4x more memory
         self.full_token_collator = PertBatchCollator( self.vocab, self.gene_ids, full_tokenize=True, **config)
         print("Initialization complete.")
+
+    def set_genotype_index(self, genotype_to_index):
+        self.genotype_to_index = {t: i for i, t in enumerate(self.adata.obs['genotype'].unique())} if genotype_to_index is None else genotype_to_index
+        self.num_genotypes = len(self.genotype_to_index)
+
+    def set_celltype_index(self, celltype_to_index):
+        self.cell_type_to_index = {t: i for i, t in enumerate(self.adata.obs['celltype'].unique())} if celltype_to_index is None else celltype_to_index
+        self.num_cell_types = len(self.cell_type_to_index)
 
     def get_adata_info_dict(self):
         data_gen = { 
@@ -346,10 +369,10 @@ class PertTFDataManager:
                 
         return data_gen
 
-    def _create_dataset_from_indices(self, adata, indices):
+    def _create_dataset_from_indices(self, indices):
         """A helper function to create PertTFDataset from underlying adata."""
         perttf_dataset = PertTFDataset(
-            adata, indices=indices, cell_type_to_index=self.cell_type_to_index, genotype_to_index=self.genotype_to_index,
+            self.adata, indices=indices, cell_type_to_index=self.cell_type_to_index, genotype_to_index=self.genotype_to_index,
             ps_columns=self.ps_columns, next_cell_pred=self.next_cell_pred_type , expr_layer=self.expr_layer, only_sample_wt_pert=self.only_sample_wt_pert
         )
         return perttf_dataset
@@ -363,49 +386,177 @@ class PertTFDataManager:
         )
         return loader
 
-    def get_full_data_loader(self, full_token = False):
-        full_data = self._create_dataset_from_indices(np.arange(self.adata.n_obs))
-        full_loader = self._create_loaders_from_dataset(full_data, full_token)
-        return full_loader
+    def get_data_w_loader(self, indices = None, full_data = False, full_token = False):
+        indices = self.indices if indices is None and full_data else indices
+        data = self._create_dataset_from_indices(indices)
+        loader = self._create_loaders_from_dataset(data, full_token)
+        return data, loader
 
-    def get_train_valid_loaders(self, test_size: float = 0.1, full_token_validate  = False):
+    def get_train_valid_loaders(self, test_size: float = 0.1, train_indices = None, valid_indices = None, full_token_validate  = False):
         """Provides a single, standard train/validation split."""
         print(f"Creating a single train/validation split (test_size={test_size})...")
-        indices = np.arange(self.adata.n_obs)
-        train_indices, valid_indices = train_test_split(indices, test_size=test_size, shuffle=True)
-        train_data, valid_data = (
-                self._create_dataset_from_indices(self.adata, train_indices), 
-                self._create_dataset_from_indices(self.adata, valid_indices)
-        )
-        train_loader, valid_loader = ( 
-                self._create_loaders_from_dataset(train_data), 
-                self._create_loaders_from_dataset(valid_data, full_token_validate)
-        )     
+        if train_indices is None or valid_indices is None:
+            indices = np.arange(self.adata.n_obs)
+            train_indices, valid_indices = train_test_split(indices, test_size=test_size, shuffle=True)
+        else:
+            assert len(set(train_indices).intersection(valid_indices)) == 0, 'training data and validation data are not separate'
+            print('overiding random train/valid split with provided indices')
+        train_data, train_loader = self.get_data_w_loader(train_indices)
+        valid_data, valid_loader = self.get_data_w_loader(valid_indices, full_token=full_token_validate)
         return train_data, train_loader, valid_data, valid_loader, self.get_adata_info_dict()
 
-    def get_k_fold_split_loaders(self, n_splits: int = 5):
+    def get_k_fold_split_loaders(self, cv = 5):
         """
         An iterator that yields train and validation dataloaders for each fold
         in a k-fold cross-validation setup.
         """
-        print(f"Setting up K-Fold cross-validation with {n_splits} splits...")
-        kf = KFold(n_splits=n_splits, shuffle=True)
-        indices = np.arange(self.adata.n_obs)
+        kf = cv if issubclass(cv.__class__,  _BaseKFold) else KFold(n_splits=cv, shuffle=True)
+        print(f"Set up K-Fold cross-validation with {kf.n_splits} folds")
+        for fold, (train_indices, valid_indices) in enumerate(kf.split(self.indices)):
+            print(f"--- Yielding data loaders for Fold {fold+1}/{kf.n_splits} ---")
+            yield self.get_train_valid_loaders(train_indices = train_indices, valid_indices = valid_indices, full_token_validate  = False)
+
+
+
+"""
+The following classes attempt to implement a crude solution for dealing with large amount of single cell datasets
+The General Idea is as follows:
+1. Massive datasets should be processed into relatively unfied format (prefer Anndata) and placed on disk.
+1. Create Manifest that contains the meta data of all cells and raw files of each cell
+2. Train/valid split based on Manifest
+3. Memory constraints are shifted to I/O via on the fly read/loading of each cell with Anndata backed='r' or equivalent
+4. Collators and other preprocessing functions should remain unchanged
+5. This should also accomodate the case of a single massive dataset
+"""
+
+import pandas as pd
+import anndata
+
+class PertTFMultiDataManager:
+    """Unfinished Implementation"""
+    def __init__(self, data_directory: str, config: object):
+        self.config = config
+        self.data_directory = data_directory
         
-        for fold, (train_indices, valid_indices) in enumerate(kf.split(indices)):
-            print(f"--- Yielding data loaders for Fold {fold+1}/{n_splits} ---")
-            train_data, valid_data = (
-                self._create_dataset_from_indices(self.adata, train_indices), 
-                self._create_dataset_from_indices(self.adata, valid_indices)
-            )
-            train_loader, valid_loader = ( 
-                self._create_loaders_from_dataset(train_data), 
-                self._create_loaders_from_dataset(valid_data, self.full_token_validate)
-            )
-            yield train_data, train_loader, valid_data, valid_loader, self.get_adata_info_dict()
+        # 1. Create or load the global manifest
+        self.manifest_path = "global_manifest.parquet"
+        if not os.path.exists(self.manifest_path):
+            print("Creating global manifest...")
+            self.manifest = self._create_manifest()
+        else:
+            print("Loading existing manifest...")
+            self.manifest = pd.read_parquet(self.manifest_path)
+
+        # 2. Create global mappings from the manifest
+        print("Creating global vocab and mappings...")
+        self.cell_type_to_index = {t: i for i, t in enumerate(self.manifest['celltype'].unique())}
+        self.genotype_to_index = {t: i for i, t in enumerate(self.manifest['genotype'].unique())}
+        # Assume genes are consistent across files, or create a global gene list
+        # by inspecting the first file.
+        first_adata = anndata.read_h5ad(self.manifest['file_path'].iloc[0])
+        self.genes = first_adata.var.index.tolist()
+        self.vocab = self._create_vocab()
+        self.gene_ids = np.array(self.vocab(self.genes), dtype=int)
+
+        # Collators can remain largely the same!
+        self.collator = PertBatchCollator(...)
+        
+    def _create_manifest(self):
+        all_obs = []
+        h5ad_files = glob.glob(f"{self.data_directory}/*.h5ad")
+        for file_path in h5ad_files:
+            adata = anndata.read_h5ad(file_path, backed='r')
+            obs_df = adata.obs.copy()
+            obs_df['file_path'] = file_path
+            obs_df['index_in_file'] = np.arange(adata.n_obs)
+            all_obs.append(obs_df)
+        
+        manifest_df = pd.concat(all_obs)
+        manifest_df.to_parquet(self.manifest_path)
+        return manifest_df
+
+    # ... other methods ...
 
 
+class PertTFMultiDataset(Dataset):
+    """Unifinished Implementation"""
+    def __init__(self, manifest_df: pd.DataFrame, cell_type_to_index: dict, genotype_to_index: dict):
+        """
+        Initializes with a manifest DataFrame for a specific data split (e.g., train or valid).
+        """
+        self.manifest = manifest_df.reset_index(drop=True)
+        self.cell_type_to_index = cell_type_to_index
+        self.genotype_to_index = genotype_to_index
+        self.expr_layer = 'X_binned'
+        # ... other configs ...
 
+        # The sampling pool is now built from the manifest, not an AnnData object.
+        # This is fast and memory-efficient.
+        self.next_cell_dict = self._create_next_cell_pool()
 
+    def __len__(self):
+        return len(self.manifest)
 
+    def _create_next_cell_pool(self):
+        """Pre-computes a dictionary for sampling using the manifest."""
+        next_cell_dict = {}
+        # Group by celltype and genotype to find valid indices within the manifest
+        for (cell_type, genotype), group in self.manifest.groupby(['celltype', 'genotype']):
+            if cell_type not in next_cell_dict:
+                next_cell_dict[cell_type] = {}
+            # Store the manifest indices (0, 1, 2...) for this group
+            next_cell_dict[cell_type][genotype] = group.index.tolist()
+        return next_cell_dict
 
+    def _get_cell_data(self, manifest_idx: int):
+        """Helper to load data for a single cell from disk using its manifest index."""
+        cell_info = self.manifest.iloc[manifest_idx]
+        file_path = cell_info['file_path']
+        index_in_file = cell_info['index_in_file']
+        
+        # Use backed mode for memory-efficient reading of a single row
+        adata_slice = anndata.read_h5ad(file_path, backed='r')
+        expr = adata_slice.layers[self.expr_layer][index_in_file]
+        if issparse(expr):
+            expr = expr.toarray().flatten()
+            
+        return expr, cell_info
+
+    def __getitem__(self, idx: int):
+        """
+        Retrieves one sample by reading from disk on the fly.
+        """
+        # 1. Get current cell's metadata and expression data
+        current_expr, current_cell_info = self._get_cell_data(idx)
+
+        # 2. Sample the next cell using the manifest-based pool
+        # This logic remains very similar, but now returns a manifest index
+        next_cell_manifest_idx, next_pert_label_str = self._sample_next_cell(current_cell_info)
+        
+        # 3. Get next cell's expression data
+        next_expr, next_cell_info = self._get_cell_data(next_cell_manifest_idx)
+        
+        # 4. Assemble the sample dictionary (similar to your original code)
+        # ... use current_cell_info and next_cell_info to get labels ...
+        sample = {
+            "expr": current_expr,
+            "expr_next": next_expr,
+            # ... other key-value pairs
+        }
+        return sample
+
+    def _sample_next_cell(self, current_cell_info):
+        """Samples a 'next cell' using the manifest index."""
+        # This logic is adapted to use the manifest and its indices
+        current_cell_type = current_cell_info['celltype']
+        current_genotype = current_cell_info['genotype']
+        current_manifest_idx = current_cell_info.name # .name holds the manifest index
+
+        # ... (sampling logic similar to before, but now chooses a manifest index
+        # from self.next_cell_dict) ...
+
+        # For example:
+        #possible_next_indices = self.next_cell_dict[target_cell_type][target_genotype]
+        #next_manifest_idx = random.choice(possible_next_indices)
+        
+        #return next_manifest_idx, target_genotype

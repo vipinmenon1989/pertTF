@@ -17,7 +17,7 @@ from torchtext._torchtext import (
 
 import scgpt as scg
 from perttf.utils.custom_tokenizer import tokenize_and_pad_batch, random_mask_value
-from perttf.utils.pert_data_loader import PertBatchCollator, PertTFDataset, PertTFDataManager, add_batch_info
+from perttf.utils.pert_data_loader import PertBatchCollator, PertTFDataset, PertTFUniDataManager, add_batch_info
 from scgpt import SubsetsBatchSampler
 
 def add_pred_layer(adata: AnnData, 
@@ -239,6 +239,10 @@ def produce_training_datasets(adata_input, config,
                               genotype_to_index = None,
                               vocab = None,
                               ps_columns = None,
+                              full_token_validate = False,
+                              train_val_split = 0.2,
+                              train_indices = None,
+                              valid_indices = None,
                               logger = scg.logger):
     """
     produce training datasets for from scRNA-seq 
@@ -253,8 +257,12 @@ def produce_training_datasets(adata_input, config,
     next_cell_pred:
         Whether to generate next cell fate prediction. Default is "identity" (simply duplicating input_layer_key).
     """
-    test_manager = PertTFDataManager(adata_input, config, cell_type_to_index = cell_type_to_index, genotype_to_index= genotype_to_index, expr_layer= input_layer_key)
-    t_data, t_loader, v_data, v_loader, data_info = test_manager.get_train_valid_loaders(full_token_validate=True)             
+    test_manager = PertTFUniDataManager(adata_input, 
+                                     config, 
+                                     celltype_to_index = cell_type_to_index, 
+                                     genotype_to_index= genotype_to_index, 
+                                     expr_layer= input_layer_key)
+    t_data, t_loader, v_data, v_loader, data_info = test_manager.get_train_valid_loaders(test_size=train_val_split, train_indices=train_indices, valid_indices=valid_indices, full_token_validate=full_token_validate)             
     data_info['train_loader'] = t_loader
     data_info['valid_loader'] = v_loader
     data_info['train_data'] = t_data
