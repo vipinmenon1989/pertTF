@@ -511,19 +511,23 @@ def eval_testdata(
 
     if "celltype" in adata_t.obs.columns and config.cell_type_classifier:
         celltypes_labels = adata_t.obs["celltype"].tolist()  # make sure count from 0
+        celltypes_labels = np.array(celltypes_labels)
+        celltypes_labels = np.array([cell_type_to_index[cell_type] for cell_type in celltypes_labels])
     else:
-        celltypes_labels = random.choices( [0,1], k=adata_t.shape[0])
+        #celltypes_labels = np.array(random.choices( [0,1], k=adata_t.shape[0]))
+        celltypes_labels = None
 
-    celltypes_labels = np.array(celltypes_labels)
-    celltypes_indexes = np.array([cell_type_to_index[cell_type] for cell_type in celltypes_labels])
+    
 
-    if "genotype" in adata_t.obs.columns and config.perturbation_classifier_weight > 0:
+    if "genotype" in adata_t.obs.columns and (config.perturbation_classifier_weight > 0 or config.perturbation_input):
         perturbation_labels = adata_t.obs["genotype"].tolist()  # make sure count from 0
+        perturbation_labels = np.array(perturbation_labels)
+        perturbation_labels = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels])
     else:
-        perturbation_labels = random.choices( [0,1], k=adata_t.shape[0])
-
-    perturbation_labels = np.array(perturbation_labels)
-    perturbation_indexes = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels])
+        #perturbation_labels = np.array(random.choices( [0,1], k=adata_t.shape[0]))
+        perturbation_labels = None
+    
+    
 
     # evaluate the next prediction?
     
@@ -531,16 +535,14 @@ def eval_testdata(
         next_cell_prediction = True
     else:
         next_cell_prediction = False
+
     if next_cell_prediction:
         perturbation_labels_next = adata_t.obs["genotype_next"].tolist()  # make sure count from 0
+        perturbation_labels_next = np.array(perturbation_labels_next)
+        perturbation_labels_next = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels_next])
     else:
-        perturbation_labels_next = random.choices( [0,1], k=adata_t.shape[0])
-
-    perturbation_labels_next = np.array(perturbation_labels_next)
-    if next_cell_prediction:
-        perturbation_indexes_next = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels_next])
-    else:
-        perturbation_indexes_next = None
+        #perturbation_labels_next = random.choices( [0,1], k=adata_t.shape[0])
+        perturbation_labels_next = None
     
     if "batch_id" in adata_t.obs.columns: # and config.DSBN:
         batch_ids = adata_t.obs["batch_id"].tolist()

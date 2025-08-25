@@ -229,7 +229,6 @@ class PertBatchCollator:
         self.vocab = vocab
         self.gene_ids = gene_ids
         self.full_tokenize = full_tokenize
-        self.append_cls = config.get('append_cls', True)
         self.include_zero_gene = config.get('include_zero_gene', True)
         self.append_cls = config.get('append_cls', True)
         self.cls_value = config.get('cls_value', -3)

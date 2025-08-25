@@ -268,7 +268,7 @@ def produce_training_datasets(adata_input, config,
     data_info['train_data'] = t_data
     data_info['valid_data'] = v_data
     data_info['cell_ids_train'] = t_data.get_adata_subset().obs.index
-    data_info['adata_sorted'] = v_data.get_adata_subset(next_cell_pred='pert')
+    data_info['adata_sorted'] = v_data.get_adata_subset(next_cell_pred=next_cell_pred)
     data_info['adata_manager'] = test_manager
     data_info['n_perturb'] = data_info['num_genotypes']
     data_info['n_cls'] = data_info['num_cell_types']
