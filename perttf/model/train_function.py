@@ -597,8 +597,8 @@ def eval_testdata(
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
-                pert_labels = torch.from_numpy(perturbation_indexes).long() if config.perturbation_input else None,
-                pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
+                pert_labels = torch.from_numpy(perturbation_labels).long() if config.perturbation_input else None,
+                pert_labels_next = torch.from_numpy(perturbation_labels_next).long() if next_cell_prediction else None,
                 time_step=0,
                 return_np=True,
                 predict_expr = predict_expr
