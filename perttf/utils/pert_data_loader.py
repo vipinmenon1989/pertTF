@@ -231,6 +231,8 @@ class PertBatchCollator:
         self.full_tokenize = full_tokenize
         self.append_cls = config.get('append_cls', True)
         self.include_zero_gene = config.get('include_zero_gene', True)
+        self.append_cls = config.get('append_cls', True)
+        self.cls_value = config.get('cls_value', -3)
         self.max_seq_len = config.get('max_seq_len', 3000)
         self.pad_token = config.get('pad_token', '<pad>')
         self.pad_value = config.get('pad_value', -2)
@@ -252,22 +254,25 @@ class PertBatchCollator:
         # during validation and predictions, this window may be around all genes with expression
         max_seq_len = self.max_seq_len if not self.full_tokenize else len(self.gene_ids) + self.append_cls
 
-        # TODO: These functions may need to be modified to accomodate inputs w differing number of genes
+        # TODO: These functions may need to be modified to accomodate inputs w differing number of genes in the future
         tokenized, gene_idx_list = tokenize_and_pad_batch(
             np.array(expr_list), self.gene_ids, max_len=max_seq_len,
             vocab=self.vocab, pad_token=self.pad_token, pad_value=self.pad_value,
-            append_cls=self.append_cls, include_zero_gene=self.include_zero_gene
+            append_cls=self.append_cls, include_zero_gene=self.include_zero_gene, 
+            cls_value=self.cls_value
         )
         tokenized_next, _ = tokenize_and_pad_batch(
             np.array(expr_next_list), self.gene_ids, max_len=max_seq_len,
             vocab=self.vocab, pad_token=self.pad_token, pad_value=self.pad_value,
-            append_cls=self.append_cls, include_zero_gene=self.include_zero_gene, sample_indices=gene_idx_list
+            append_cls=self.append_cls, include_zero_gene=self.include_zero_gene, 
+            sample_indices=gene_idx_list, cls_value=self.cls_value
         )
         
         # 3. Apply random masking for this batch
         masked_values = random_mask_value(
             tokenized["values"], mask_ratio=self.mask_ratio,
             mask_value=self.mask_value, pad_value=self.pad_value,
+            cls_value= self.cls_value
         )
 
         # 4. Collate all other labels into tensors

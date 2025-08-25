@@ -73,7 +73,7 @@ class SimpleVocab:
 
 
 
-# This function remains unchanged
+# added the cls value is append cls (previously it was 0)
 def tokenize_batch(
     data: np.ndarray,
     gene_ids: np.ndarray,
@@ -81,6 +81,7 @@ def tokenize_batch(
     append_cls: bool = True,
     include_zero_gene: bool = False,
     cls_id: int = "<cls>",
+    cls_value: int = -3,
     mod_type: np.ndarray = None,
     cls_id_mod_type: int = None,
 ) -> List[Tuple[Union[torch.Tensor, np.ndarray]]]:
@@ -125,7 +126,7 @@ def tokenize_batch(
                 mod_types = mod_type[idx]
         if append_cls:
             genes = np.insert(genes, 0, cls_id)
-            values = np.insert(values, 0, 0)
+            values = np.insert(values, 0, cls_value)
             if mod_type is not None:
                 mod_types = np.insert(mod_types, 0, cls_id_mod_type)
         if return_pt:
@@ -251,11 +252,12 @@ def tokenize_and_pad_batch(
     gene_ids: np.ndarray,
     max_len: int,
     vocab: Vocab,
-    pad_token: str,
-    pad_value: int,
-    append_cls: bool = True,
     include_zero_gene: bool = False,
+    pad_token: str = "<pad>",
+    pad_value: int = -2,
+    append_cls: bool = True,
     cls_token: str = "<cls>",
+    cls_value: int = -3,
     return_pt: bool = True,
     mod_type: np.ndarray = None,
     vocab_mod: Vocab = None,
@@ -287,6 +289,7 @@ def tokenize_and_pad_batch(
         append_cls=append_cls,
         include_zero_gene=include_zero_gene,
         cls_id=cls_id,
+        cls_value=cls_value,
         mod_type=mod_type,
         cls_id_mod_type=cls_id_mod_type,
     )
@@ -309,6 +312,7 @@ def random_mask_value(
     mask_ratio: float = 0.15,
     mask_value: int = -1,
     pad_value: int = 0,
+    cls_value: int = -3
 ) -> torch.Tensor:
     """
     Randomly mask a batch of data.
@@ -331,7 +335,7 @@ def random_mask_value(
 
     for i in range(len(values)):
         row = values[i]
-        non_padding_idx = np.nonzero(row - pad_value)[0]
+        non_padding_idx = np.intersect1d(np.nonzero(row - pad_value), np.nonzero(row - cls_value)) # only mask non padding or cls positions
         n_mask = int(len(non_padding_idx) * mask_ratio)
         mask_idx = np.random.choice(non_padding_idx, n_mask, replace=False)
         row[mask_idx] = mask_value

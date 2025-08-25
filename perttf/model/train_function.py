@@ -180,6 +180,7 @@ def train(model: nn.Module,
                     .sum()
                     .item()
                 ) / celltype_labels.size(0)
+
             if config.perturbation_classifier_weight > 0:
                 loss_pert = criterion_pert(output_dict["pert_output"], perturbation_labels)
                 loss = loss + config.perturbation_classifier_weight * loss_pert
@@ -188,6 +189,7 @@ def train(model: nn.Module,
                 loss_pert_next = criterion_pert(output_dict["pert_output_next"], perturbation_labels_next)
                 loss = loss + config.perturbation_classifier_weight * config.next_weight * loss_pert_next
                 metrics_to_log.update({"train/pert_next": loss_pert_next.item()})
+
             if config.ps_weight >0:
                 loss_ps = criterion_ps(output_dict["ps_output"], ps_score)
                 #import pdb; pdb.set_trace()
