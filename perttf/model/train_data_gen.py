@@ -23,8 +23,9 @@ from scgpt import SubsetsBatchSampler
 def add_pred_layer(adata: AnnData, 
         binned_layer_key: Optional[str] = 'X_binned', 
         next_layer_key: Optional[str] = 'X_binned_next',
-        next_cell_pred: Literal["identity","pert"] = "identity",
-        ps_columns: Optional[str] = None) -> Dict:
+        next_cell_pred: Literal["identity","pert","lochness"] = "identity",
+        ps_columns: Optional[str] = None,
+        ps_columns_perturbed_genes: Optional[str] = None, ) -> Dict:
     """
     format controls the different input value wrapping, including categorical
     binned style, fixed-sum normalized counts, log1p fixed-sum normalized counts, etc.
@@ -37,17 +38,20 @@ def add_pred_layer(adata: AnnData,
         The key of :class:`AnnData.obs` to use for expression layer. Default is the binned expression layer.
     next_layer_key (:class:`str`, optional):
         The key of :class:`AnnData.obs` to use for next-stage expression layer. Default is the binned expression layer.
-    copy_data (:class:`bool`, optional):
-        Whether to directly copy the data
+    next_cell_pred (:class:`str`, optional):
+        The method to predict the next cell. Can be "identity" (use the same cell as the target of the next cell); "pert" (a random cell in the perturbed state); or "lochness" which is a lochness score of a certain perturbation 
+        Default is "identity".
+    ps_columns: (:class:`str`, optional):
+        The key of :class:`AnnData.obs` to use for PS scores. Default is None.
+    ps_columns_perturbed_genes: (:class:`str`, optional):
+        The corresponding perturbed genes in ps_columns. Only used when next_cell_pred is "lochness". Default is None.
 
     Returns:
-    (current_counts, next_counts, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata)
+        A dictionary containing the following elements:
+        (current_counts, next_counts, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata)
     """
-    if next_cell_pred == "identity":
-        adata_p = adata
-    else:
-        #adata_p = adata[adata.obs['genotype']=='WT']
-        adata_p = adata
+
+    adata_p = adata
 
     all_counts_0 = (adata_p.layers[binned_layer_key].toarray() if issparse(adata_p.layers[binned_layer_key]) else adata_p.layers[binned_layer_key])
 
@@ -100,64 +104,95 @@ def add_pred_layer(adata: AnnData,
             'ps_names': ps_exist_c,
         }
         return retdict
-        #return (all_counts_0,input_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
-    
-    # predict the next cell type
-    obsf=adata.obs
-    next_cell_dict = {}
-    genotype_pool = list(set(obsf['genotype']))
-    for candidate_celltype in set(obsf['celltype']):
-        next_cell_dict[candidate_celltype] = {}
-        for candidate_genotype in set(obsf['genotype']):
-            obsf_sel = obsf[(obsf['celltype']==candidate_celltype) & (obsf['genotype']==candidate_genotype)]
-            included_cells = obsf_sel.index.to_list()
-            if len(included_cells) > 0:
-                next_cell_dict[candidate_celltype][candidate_genotype] = included_cells
+    if next_cell_pred == "pert":
+        # predict the next cell type
+        obsf=adata.obs
+        next_cell_dict = {}
+        genotype_pool = list(set(obsf['genotype']))
+        for candidate_celltype in set(obsf['celltype']):
+            next_cell_dict[candidate_celltype] = {}
+            for candidate_genotype in set(obsf['genotype']):
+                obsf_sel = obsf[(obsf['celltype']==candidate_celltype) & (obsf['genotype']==candidate_genotype)]
+                included_cells = obsf_sel.index.to_list()
+                if len(included_cells) > 0:
+                    next_cell_dict[candidate_celltype][candidate_genotype] = included_cells
 
-    # adata_p = adata[adata.obs['genotype']=='WT']
+        # adata_p = adata[adata.obs['genotype']=='WT']
 
-    target_pert=[]
-    target_cell_id=[]
-    for this_cell in adata_p.obs.index.values:
-        this_cell_type = adata_p.obs.loc[this_cell]['celltype']
-        this_geno_type = adata_p.obs.loc[this_cell]['genotype']
-        if this_geno_type == 'WT': # randomly select a different genotype
-            next_pert_value=random.choice(list(next_cell_dict[this_cell_type].keys()))
-        else: # choose the same perturb as the next pert (i.e., no combination perturbation) for training
-            next_pert_value = this_geno_type
-        target_pert.append(next_pert_value)
-        next_cell = random.choice(next_cell_dict[this_cell_type][next_pert_value])
-        target_cell_id.append(next_cell)
+        target_pert=[]
+        target_cell_id=[]
+        for this_cell in adata_p.obs.index.values:
+            this_cell_type = adata_p.obs.loc[this_cell]['celltype']
+            this_geno_type = adata_p.obs.loc[this_cell]['genotype']
+            if this_geno_type == 'WT': # randomly select a different genotype
+                next_pert_value=random.choice(list(next_cell_dict[this_cell_type].keys()))
+            else: # choose the same perturb as the next pert (i.e., no combination perturbation) for training
+                next_pert_value = this_geno_type
+            target_pert.append(next_pert_value)
+            next_cell = random.choice(next_cell_dict[this_cell_type][next_pert_value])
+            target_cell_id.append(next_cell)
 
-    adata_p.obs['genotype_next'] = target_pert # random select the next perturbations
-    adata_p.obs['next_cell_id'] = target_cell_id
-    
-    #(adata_p.layers[binned_layer_key].toarray() if issparse(adata_p.layers[binned_layer_key]) else adata_p.layers[binned_layer_key])
+        adata_p.obs['genotype_next'] = target_pert # random select the next perturbations
+        adata_p.obs['next_cell_id'] = target_cell_id
+        
+        #(adata_p.layers[binned_layer_key].toarray() if issparse(adata_p.layers[binned_layer_key]) else adata_p.layers[binned_layer_key])
 
-    input_layers=all_counts_0 # adata.layers[binned_layer_key] #.copy()
-    target_cell_id_index=obsf.index.get_indexer(target_cell_id)
-    target_layers=input_layers[target_cell_id_index]
-    perturbation_labels_next = target_pert
-    perturbation_labels_next = np.array(perturbation_labels_next)
-    # return the ps matrix next
-    ps_matrix_next = ps_matrix[target_cell_id_index]
-    # instead of returning a tuplex, return a dictionary 
-    retdict={
-        'expmat': all_counts_0,
-        'expmat_next': target_layers,
-        'celllabel': celltypes_labels_0,
-        'pertlabel': perturbation_labels_0, 
-        'batchid': batch_ids_0, 
-        'celllabel_next': celltypes_labels_next, 
-        'pertlabel_next': perturbation_labels_next, 
-        'adata': adata_p,
-        'ps':ps_matrix,
-        'ps_next': ps_matrix_next,
-        'ps_names': ps_exist_c,
-    }
-    return retdict
-    #return (all_counts_0,target_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
+        input_layers=all_counts_0 # adata.layers[binned_layer_key] #.copy()
+        target_cell_id_index=obsf.index.get_indexer(target_cell_id)
+        target_layers=input_layers[target_cell_id_index]
+        perturbation_labels_next = target_pert
+        perturbation_labels_next = np.array(perturbation_labels_next)
+        # return the ps matrix next
+        ps_matrix_next = ps_matrix[target_cell_id_index]
+        # instead of returning a tuplex, return a dictionary 
+        retdict={
+            'expmat': all_counts_0,
+            'expmat_next': target_layers,
+            'celllabel': celltypes_labels_0,
+            'pertlabel': perturbation_labels_0, 
+            'batchid': batch_ids_0, 
+            'celllabel_next': celltypes_labels_next, 
+            'pertlabel_next': perturbation_labels_next, 
+            'adata': adata_p,
+            'ps':ps_matrix,
+            'ps_next': ps_matrix_next,
+            'ps_names': ps_exist_c,
+        }
+        return retdict
+        #return (all_counts_0,target_layers, celltypes_labels_0, perturbation_labels_0, batch_ids_0, celltypes_labels_next, perturbation_labels_next, adata_p)
+    if next_cell_pred == "lochness":
+        if ps_columns is None:
+            raise ValueError("PS columns must be provided for lochness prediction")
+        if len(ps_columns) != len(ps_columns_perturbed_genes):
+            raise ValueError("The ps_columns_perturbed_genes must be specified and has to have equal length as ps_columns")
+        perturbation_labels_uniq = np.unique(perturbation_labels_0)
+        ps_columns_perturbed_genes = [x for x in ps_columns_perturbed_genes if x in perturbation_labels_uniq]
+        if len(ps_columns_perturbed_genes) != ps_matrix.shape[1]:
+            print('Specified perturbed genes for PS column after filtering:' + ','.join(ps_columns_perturbed_genes))
+            raise ValueError("The ps_columns_perturbed_genes must be specified and has to have equal length as ps_matrix")
 
+        # randomly select from ps_columns_perturbed_genes
+        random_index = random.choices(range(len(ps_columns_perturbed_genes)), k=len(perturbation_labels_0))
+        perturbation_shuffles_label = np.array([ps_columns_perturbed_genes[i] for i in random_index])
+        ps_sub = [ ps_matrix[i, random_index[i]] for i in range(len(perturbation_labels_0)) ]
+        ps_sub = np.array(ps_sub)
+
+        perturbation_labels_next = perturbation_labels_0
+        input_layers=adata_p.layers[binned_layer_key] #.copy()
+        retdict={
+            'expmat': all_counts_0,
+            'expmat_next': input_layers,
+            'celllabel': celltypes_labels_0,
+            'pertlabel': perturbation_shuffles_label, # perturbation_labels_0, 
+            'batchid': batch_ids_0, 
+            'celllabel_next': celltypes_labels_next, 
+            'pertlabel_next': perturbation_labels_next, 
+            'adata': adata_p,
+            'ps': ps_sub, # ps_matrix,
+            'ps_next': ps_sub, # ps_matrix,
+            'ps_names': ps_exist_c,
+        }
+        return retdict
 
 def add_pred_layer_old(adata: AnnData, binned_layer_key: Optional[str] = 'X_binned', next_layer_key: Optional[str] = 'X_binned_next') -> Dict:
     """
@@ -234,11 +269,12 @@ def add_pred_layer_old(adata: AnnData, binned_layer_key: Optional[str] = 'X_binn
 def produce_training_datasets(adata_input, config,
                               input_layer_key = "X_binned",
                               next_layer_key = "X_binned_next",
-                              next_cell_pred: Literal["identity","pert"] = "identity",
+                              next_cell_pred: Literal["identity","pert","lochness"] = "identity",
                               cell_type_to_index = None,
                               genotype_to_index = None,
                               vocab = None,
                               ps_columns = None,
+                              ps_columns_perturbed_genes = None,
                               full_token_validate = False,
                               train_val_split = 0.2,
                               train_indices = None,
@@ -259,6 +295,8 @@ def produce_training_datasets(adata_input, config,
     """
     test_manager = PertTFUniDataManager(adata_input, 
                                      config, 
+                                     ps_columns=ps_columns, 
+                                     ps_columns_perturbed_genes=ps_columns_perturbed_genes,
                                      celltype_to_index = cell_type_to_index, 
                                      genotype_to_index= genotype_to_index, 
                                      expr_layer= input_layer_key)
@@ -781,4 +819,3 @@ def prepare_dataloader(
         pin_memory=True,
     )
     return data_loader
-

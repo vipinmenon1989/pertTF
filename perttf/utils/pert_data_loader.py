@@ -45,7 +45,7 @@ class PertTFDataset(Dataset):
     """
     def __init__(self, adata: AnnData, indices: np.ndarray = None, 
                  cell_type_to_index: dict = None, genotype_to_index: dict = None, expr_layer: str = 'X_binned',
-                 ps_columns: list = None, next_cell_pred: str = "identity", only_sample_wt_pert: bool = False):
+                 ps_columns: list = None, ps_columns_perturbed_genes: list = None, next_cell_pred: str = "identity", only_sample_wt_pert: bool = False):
         """
         The PertTFDataset serves to interface with pytorch Dataloaders 
         Its main function is to subset and extract single samples from a single Anndata object that is in-memory
@@ -58,7 +58,8 @@ class PertTFDataset(Dataset):
             cell_type_to_index (dict): Mapping from cell type string to integer index.
             genotype_to_index (dict): Mapping from genotype string to integer index.
             ps_columns (list, optional): List of columns in obs to use for 'ps' scores.
-            next_cell_pred (str): The mode for next cell prediction ("identity" or "pert").
+            ps_columns_perturbed_genes (list, optional): List of perturbed genes for ps_columns. Only active if next_cell_red is "lochness". Have to be have the same length as ps_columns.
+            next_cell_pred (str): The mode for next cell prediction ("identity" or "pert" or "lochness").
             only_sample_wt_pert: only random sample next cell for wild type cells
         """
         self.adata = adata
@@ -78,6 +79,18 @@ class PertTFDataset(Dataset):
         self.next_cell_dict = self._create_next_cell_pool()
         self.only_sample_wt_pert = only_sample_wt_pert
 
+        if self.next_cell_pred == "lochness":
+            if ps_columns is None:
+                raise ValueError("PS columns must be provided for lochness prediction")
+            if len(ps_columns) != len(ps_columns_perturbed_genes):
+                raise ValueError("The ps_columns_perturbed_genes must be specified and has to have equal length as ps_columns")
+            #perturbation_labels_uniq = np.unique(perturbation_labels_0)
+            ps_columns_perturbed_genes = [x for x in ps_columns_perturbed_genes if x in self.genotype_to_index]
+            if len(ps_columns_perturbed_genes) != len(ps_columns):
+                print('Specified perturbed genes for PS column after filtering:' + ','.join(ps_columns_perturbed_genes))
+                raise ValueError("The ps_columns_perturbed_genes must be specified and has to have equal length as ps_matrix")
+            self.ps_columns_perturbed_genes = ps_columns_perturbed_genes
+
     def _check_anndata_content(self):
         assert 'genotype' in self.adata.obs.columns and 'celltype' in self.adata.obs.columns, 'no genotype or celltype column found in anndata'
         add_batch_info(self.adata)
@@ -87,8 +100,8 @@ class PertTFDataset(Dataset):
         self.next_cell_dict = self._create_next_cell_pool()
 
     def get_adata_subset(self, next_cell_pred = 'identity'):
-        assert next_cell_pred in ['pert', 'identity'], 'next_cell_pred can only be identity or pert'
-        if next_cell_pred == "identity":
+        assert next_cell_pred in ['pert', 'identity', "lochness"], 'next_cell_pred can only be identity or pert or lochness'
+        if next_cell_pred == "identity" or next_cell_pred == "lochness":
             return self.adata[self.indices,].copy()
         else:
             adata_small = self.adata[self.indices,].copy()
@@ -134,7 +147,7 @@ class PertTFDataset(Dataset):
         current_cell_type = current_cell_obs['celltype']
         current_genotype = current_cell_obs['genotype']
 
-        if self.next_cell_pred == "identity":
+        if self.next_cell_pred == "identity" or self.next_cell_pred == "lochness":
             return current_cell_id, current_genotype
 
         # Logic for perturbation prediction
@@ -191,7 +204,13 @@ class PertTFDataset(Dataset):
 
         # 5. Get labels and PS scores
         cell_label = self.cell_type_to_index[current_cell_obs['celltype']]
-        pert_label = self.genotype_to_index[current_cell_obs['genotype']]
+        if self.next_cell_pred == "lochness":
+            #pert_label = self.genotype_to_index[current_cell_obs['genotype']]
+            random_pert_ind = random.randint(0, len(self.ps_columns_perturbed_genes)-1)
+            pert_label = self.genotype_to_index[self.ps_columns_perturbed_genes[random_pert_ind]]
+        else:
+            pert_label = self.genotype_to_index[current_cell_obs['genotype']]
+            random_pert_ind = 0
         batch_label = current_cell_obs['batch_id']
 
         # Next cell labels are the same for cell type, but perturbation can change
@@ -200,6 +219,10 @@ class PertTFDataset(Dataset):
         
         ps_scores = current_cell_obs[self.ps_columns].values.astype(np.float32) if self.ps_columns else np.array([0.0], dtype=np.float32)
         ps_scores_next = self.adata.obs.loc[next_cell_id, self.ps_columns].values.astype(np.float32) if self.ps_columns else np.array([0.0], dtype=np.float32)
+
+        if self.next_cell_pred == "lochness":
+            ps_scores = ps_scores[random_pert_ind]
+            ps_scores_next = ps_scores_next[random_pert_ind]
 
         return {
             "expr": current_expr,
@@ -308,6 +331,7 @@ class PertTFUniDataManager:
                  adata: AnnData, 
                  config: object, 
                  ps_columns: list = None,
+                 ps_columns_perturbed_genes: list = None,
                  celltype_to_index: dict = None, 
                  vocab: Vocab = None,
                  genotype_to_index: dict = None, 
@@ -319,6 +343,7 @@ class PertTFUniDataManager:
         self.indices = np.arange(self.adata.n_obs)
         self.config = config
         self.ps_columns = ps_columns # perhaps this can incorporated into config
+        self.ps_columns_perturbed_genes = ps_columns_perturbed_genes
         self.expr_layer = expr_layer
         self.only_sample_wt_pert = config.get('only_sample_wt_pert', only_sample_wt_pert)
         self.next_cell_pred_type = config.get('next_cell_pred_type', next_cell_pred_type)
@@ -367,7 +392,7 @@ class PertTFUniDataManager:
             'genotype_to_index': self.genotype_to_index
         }
         if self.ps_columns is not None:
-            data_gen['ps_names']=[x for x in self.ps_columns if x in self.data.obs.columns]
+            data_gen['ps_names']=[x for x in self.ps_columns if x in self.adata.obs.columns]
         else:
             data_gen['ps_names']=["PS"]
                 
@@ -377,7 +402,8 @@ class PertTFUniDataManager:
         """A helper function to create PertTFDataset from underlying adata."""
         perttf_dataset = PertTFDataset(
             self.adata, indices=indices, cell_type_to_index=self.cell_type_to_index, genotype_to_index=self.genotype_to_index,
-            ps_columns=self.ps_columns, next_cell_pred=self.next_cell_pred_type , expr_layer=self.expr_layer, only_sample_wt_pert=self.only_sample_wt_pert
+            ps_columns=self.ps_columns, ps_columns_perturbed_genes = self.ps_columns_perturbed_genes, 
+            next_cell_pred=self.next_cell_pred_type , expr_layer=self.expr_layer, only_sample_wt_pert=self.only_sample_wt_pert
         )
         return perttf_dataset
 

@@ -7,7 +7,7 @@ import copy
 import numpy as np
 
 from typing import Dict, Mapping, Optional, Tuple, Any, Union
-from typing import List, Tuple   
+from typing import List, Tuple
 
 from torch import nn, Tensor
 from torch.utils.data import Dataset, DataLoader
@@ -91,7 +91,7 @@ def train(model: nn.Module,
 
         if config.ps_weight >0:
             ps_score = batch_data["ps"].to(device)
-            ps_score_next = batch_data["ps_next"].to(device) # 
+            ps_score_next = batch_data["ps_next"].to(device) #
 
         src_key_padding_mask = input_gene_ids.eq(vocab[config.pad_token])
         with torch.cuda.amp.autocast(enabled=config.amp):
@@ -119,10 +119,10 @@ def train(model: nn.Module,
             metrics_to_log = {"train/mse": loss_mse.item()}
             # next value?
             loss_mse_next = criterion(
-                output_dict["mlm_output"], 
+                output_dict["mlm_output"],
                 target_values_next, masked_positions
             )
-            # disable now 
+            # disable now
             #loss = loss + config.next_weight * loss_mse_next
             metrics_to_log.update({"train/mse_next": loss_mse_next.item()})
 
@@ -199,7 +199,7 @@ def train(model: nn.Module,
                 loss_ps_next = criterion_ps(output_dict["ps_output_next"], ps_score_next)
                 loss = loss + config.ps_weight * loss_ps_next * config.next_weight
                 metrics_to_log.update({"train/ps_next": loss_ps_next.item()})
-                
+
             if config.ecs_thres > 0:
                 loss_ecs = config.ecs_weight  * output_dict["loss_ecs"]
                 loss = loss + loss_ecs
@@ -355,8 +355,8 @@ def define_wandb_metrcis():
     wandb.define_metric("test/avg_bio", summary="max")
 
 
-def evaluate(model: nn.Module, 
-            loader: DataLoader, 
+def evaluate(model: nn.Module,
+            loader: DataLoader,
             config,
             vocab,
             epoch = 0,
@@ -370,11 +370,11 @@ def evaluate(model: nn.Module,
     criterion_pert = nn.CrossEntropyLoss()
     criterion_adv = nn.CrossEntropyLoss()  # consider using label smoothing
     criterion_ps = nn.MSELoss() # this is the loss for predicting PS scores
-                
+
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    
+
     model.eval()
     total_loss = 0.0
     total_loss_next = 0.0
@@ -395,7 +395,7 @@ def evaluate(model: nn.Module,
             celltype_labels = batch_data["celltype_labels"].to(device) #added
             perturbation_labels = batch_data["perturbation_labels"].to(device) #added
             ps_score = batch_data["ps"].to(device) #added
-            
+
             src_key_padding_mask = input_gene_ids.eq(vocab[config.pad_token])
             with torch.cuda.amp.autocast(enabled=config.amp):
                 output_dict = model(
@@ -432,11 +432,11 @@ def evaluate(model: nn.Module,
                 if config.perturbation_classifier_weight > 0:
                     loss_pert = criterion_pert(output_dict["pert_output"], perturbation_labels)
                     # = loss + loss_pert
-                
+
                 if config.ps_weight > 0:
                     loss_ps = criterion_ps(output_dict["ps_output"], ps_score)
                     # = loss + loss_pert
-            
+
             total_loss += loss.item() * len(input_gene_ids)
             total_loss_next += loss_mse_next.item() * len(input_gene_ids)
             total_error += masked_relative_error(output_values, target_values, masked_positions).item() * len(input_gene_ids)
@@ -517,7 +517,7 @@ def eval_testdata(
         #celltypes_labels = np.array(random.choices( [0,1], k=adata_t.shape[0]))
         celltypes_labels = None
 
-    
+
 
     if "genotype" in adata_t.obs.columns and (config.perturbation_classifier_weight > 0 or config.perturbation_input):
         perturbation_labels = adata_t.obs["genotype"].tolist()  # make sure count from 0
@@ -526,11 +526,12 @@ def eval_testdata(
     else:
         #perturbation_labels = np.array(random.choices( [0,1], k=adata_t.shape[0]))
         perturbation_labels = None
-    
-    
+
+    perturbation_indexes = perturbation_labels
+
 
     # evaluate the next prediction?
-    
+
     if "genotype_next" in adata_t.obs.columns and config.perturbation_classifier_weight > 0 and config.next_cell_pred_type == 'pert':
         next_cell_prediction = True
     else:
@@ -543,7 +544,8 @@ def eval_testdata(
     else:
         #perturbation_labels_next = random.choices( [0,1], k=adata_t.shape[0])
         perturbation_labels_next = None
-    
+    perturbation_indexes_next = perturbation_labels_next
+
     if "batch_id" in adata_t.obs.columns: # and config.DSBN:
         batch_ids = adata_t.obs["batch_id"].tolist()
     else:
@@ -597,8 +599,8 @@ def eval_testdata(
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
-                pert_labels = torch.from_numpy(perturbation_labels).long() if config.perturbation_input else None,
-                pert_labels_next = torch.from_numpy(perturbation_labels_next).long() if next_cell_prediction else None,
+                pert_labels = torch.from_numpy(perturbation_indexes).long() if config.perturbation_input else None,
+                pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
                 time_step=0,
                 return_np=True,
                 predict_expr = predict_expr
@@ -611,7 +613,7 @@ def eval_testdata(
             cell_embeddings_next, axis=1, keepdims=True
         )
         adata_t.obsm["X_scGPT"] = cell_embeddings
-        
+
         adata_t.obsm["X_scGPT_next"] = cell_embeddings_next
         #adata_t.obsm["X_pert_pred"] = pert_preds
         if config.ps_weight >0:
@@ -691,11 +693,11 @@ def eval_testdata(
                     )
                     plt.close()
                     results["next_umap_genotype_next"] = fign3
-            
+
             # all other evaluations
             sc.pp.neighbors(adata_t, use_rep="X_scGPT")
             sc.tl.umap(adata_t, min_dist=0.3)
-    
+
             if "batch" in adata_t.obs:
                 fig = sc.pl.umap(
                     adata_t,
@@ -707,11 +709,11 @@ def eval_testdata(
                 )
                 plt.close()
                 results["batch_umap"] = fig
-    
+
             #sc.pp.neighbors(adata_t, use_rep="X_scGPT")
             #fig = sc.tl.umap(adata_t, min_dist=0.3)
             #results["umap_X_scGPT"] = fig
-    
+
             if config.cell_type_classifier:
                 fig = sc.pl.umap(
                     adata_t,
@@ -738,7 +740,7 @@ def eval_testdata(
                 )
                 plt.close()
                 results["pred_celltype"] = fig4
-    
+
             if config.perturbation_classifier_weight > -1:
                 fig = sc.pl.umap(
                     adata_t,
@@ -765,7 +767,7 @@ def eval_testdata(
                 )
                 plt.close()
                 results["genotype_umap2"] = fig2
-    
+
                 fig3 = sc.pl.umap(
                     adata_t,
                     color=["predicted_genotype"],
@@ -779,7 +781,7 @@ def eval_testdata(
                 )
                 plt.close()
                 results["pred_genotype"] = fig3
-    
+
                 if "genotype_next" in adata_t.obs:
                     fig5 = sc.pl.umap(
                         adata_t,
@@ -819,7 +821,7 @@ def wrapper_train(model, config, data_gen,
     if save_dir is None:
         save_dir = Path(f"./save/dev_{config.dataset_name}-{time.strftime('%b%d-%H-%M')}/")
         save_dir.mkdir(parents=True, exist_ok=True)
-        
+
     # save the current configurations before epoch starts
     torch.save(vocab, save_dir / "vocab.pt")
     running_parameters={
@@ -838,7 +840,7 @@ def wrapper_train(model, config, data_gen,
     train_loader, valid_loader = data_gen['train_loader'], data_gen['valid_loader']
     for epoch in range(1, config.epochs + 1):
         epoch_start_time = time.time()
-        
+
 
         if config.do_train:
             train(
@@ -928,7 +930,7 @@ def wrapper_train(model, config, data_gen,
                             frameon=False,return_fig=True, show=False,palette="tab20",)
                         plt.close()
                         # Replace '/' with '_' in ps_names
-                        lon_c_rep=lon_c.replace('/', '_') 
+                        lon_c_rep=lon_c.replace('/', '_')
                         fig_lonc.savefig(save_dir2 / f"{eval_dict_key}_loness_{lon_c_rep}_e{epoch}.png", dpi=300,bbox_inches='tight')
                     if ('ps_names' in data_gen) & ('ps_pred' in adata_ret.obsm) :
                         predicted_ps_names = data_gen['ps_names']
@@ -937,8 +939,8 @@ def wrapper_train(model, config, data_gen,
                         logger.info(f"predicted_ps_score: {predicted_ps_score.shape}")
                         for si_i in range(len(predicted_ps_names)):
                             lon_c = predicted_ps_names[si_i]
-                            lon_c_rep=lon_c.replace('/', '_') 
-                            adata_ret.obs[f'{lon_c_rep}_pred'] = predicted_ps_score[:,si_i]
+                            lon_c_rep=lon_c.replace('/', '_')
+                            adata_ret.obs[f'{lon_c_rep}_pred'] = predicted_ps_score[:,min(si_i, predicted_ps_score.shape[1]-1)]
                             fig_lonc_pred = sc.pl.umap(adata_ret,color=[f'{lon_c_rep}_pred'],title=[f"loness {lon_c_rep}_pred  e{epoch}",],
                                 frameon=False,return_fig=True, show=False,palette="tab20",)
                             plt.close()
@@ -961,7 +963,7 @@ def wrapper_train(model, config, data_gen,
         if config.ADV:
             optimizer_dict['scheduler_D'].step()
             optimizer_dict['scheduler_E'].step()
-    
+
     # save the best model
     torch.save(best_model.state_dict(), save_dir / "best_model.pt")
 
