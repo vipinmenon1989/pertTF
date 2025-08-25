@@ -14,9 +14,66 @@ from torchtext.vocab import Vocab
 
 # from transformers.tokenization_utils import PreTrainedTokenizer
 # from transformers import AutoTokenizer, BertTokenizer
+import collections
+
+class SimpleVocab:
+    """
+    A simple, dependency-free vocabulary class to replace torchtext.vocab.Vocab.
+    It handles string-to-index (stoi) and index-to-string (itos) mappings.
+    """
+    def __init__(self, tokens: list, special_tokens: list = None):
+        """
+        Args:
+            tokens (list): A list of tokens (e.g., gene names) to build the vocabulary from.
+            special_tokens (list, optional): A list of special tokens like '<pad>' or '<cls>'.
+                                              These will be added to the beginning of the vocabulary.
+        """
+        self.special_tokens = special_tokens if special_tokens else []
+        
+        # Combine special tokens and unique regular tokens
+        all_tokens = self.special_tokens + sorted(list(set(tokens)))
+        
+        # Create integer-to-string mapping
+        self.itos = all_tokens
+        
+        # Create string-to-integer mapping
+        self.stoi = {token: i for i, token in enumerate(self.itos)}
+        
+        # Set a default index for out-of-vocabulary tokens
+        self._default_index = -1 # Uninitialized
+        if "<pad>" in self.stoi:
+            self.set_default_index(self.stoi["<pad>"])
+        elif "<unk>" in self.stoi:
+            self.set_default_index(self.stoi["<unk>"])
+
+    def __len__(self):
+        """Returns the size of the vocabulary."""
+        return len(self.itos)
+
+    def __getitem__(self, token: str) -> int:
+        """Allows dictionary-style lookup (e.g., vocab['<pad>'])."""
+        return self.stoi.get(token, self._default_index)
+
+    def __call__(self, tokens: list) -> list:
+        """Allows callable lookup for a list of tokens (e.g., vocab(gene_list))."""
+        return [self[token] for token in tokens]
+
+    def set_default_index(self, index: int):
+        """Sets the index to return for out-of-vocabulary tokens."""
+        if not 0 <= index < len(self.itos):
+            raise ValueError("Default index must be within the vocabulary size.")
+        self._default_index = index
+        # Update the default factory for collections.defaultdict if you were to use it
+        # self.stoi.default_factory = lambda: self._default_index
+        
+    def get_itos(self):
+        """Returns the list of tokens in order of their index."""
+        return self.itos
 
 
-# This function remains unchanged
+
+
+# added the cls value is append cls (previously it was 0)
 def tokenize_batch(
     data: np.ndarray,
     gene_ids: np.ndarray,
@@ -24,6 +81,7 @@ def tokenize_batch(
     append_cls: bool = True,
     include_zero_gene: bool = False,
     cls_id: int = "<cls>",
+    cls_value: int = -3,
     mod_type: np.ndarray = None,
     cls_id_mod_type: int = None,
 ) -> List[Tuple[Union[torch.Tensor, np.ndarray]]]:
@@ -68,7 +126,7 @@ def tokenize_batch(
                 mod_types = mod_type[idx]
         if append_cls:
             genes = np.insert(genes, 0, cls_id)
-            values = np.insert(values, 0, 0)
+            values = np.insert(values, 0, cls_value)
             if mod_type is not None:
                 mod_types = np.insert(mod_types, 0, cls_id_mod_type)
         if return_pt:
@@ -194,11 +252,12 @@ def tokenize_and_pad_batch(
     gene_ids: np.ndarray,
     max_len: int,
     vocab: Vocab,
-    pad_token: str,
-    pad_value: int,
-    append_cls: bool = True,
     include_zero_gene: bool = False,
+    pad_token: str = "<pad>",
+    pad_value: int = -2,
+    append_cls: bool = True,
     cls_token: str = "<cls>",
+    cls_value: int = -3,
     return_pt: bool = True,
     mod_type: np.ndarray = None,
     vocab_mod: Vocab = None,
@@ -230,6 +289,7 @@ def tokenize_and_pad_batch(
         append_cls=append_cls,
         include_zero_gene=include_zero_gene,
         cls_id=cls_id,
+        cls_value=cls_value,
         mod_type=mod_type,
         cls_id_mod_type=cls_id_mod_type,
     )
@@ -252,6 +312,7 @@ def random_mask_value(
     mask_ratio: float = 0.15,
     mask_value: int = -1,
     pad_value: int = 0,
+    cls_value: int = -3
 ) -> torch.Tensor:
     """
     Randomly mask a batch of data.
@@ -274,7 +335,7 @@ def random_mask_value(
 
     for i in range(len(values)):
         row = values[i]
-        non_padding_idx = np.nonzero(row - pad_value)[0]
+        non_padding_idx = np.intersect1d(np.nonzero(row - pad_value), np.nonzero(row - cls_value)) # only mask non padding or cls positions
         n_mask = int(len(non_padding_idx) * mask_ratio)
         mask_idx = np.random.choice(non_padding_idx, n_mask, replace=False)
         row[mask_idx] = mask_value

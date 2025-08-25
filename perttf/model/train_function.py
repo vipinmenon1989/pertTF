@@ -30,6 +30,7 @@ from scgpt.model import TransformerModel, AdversarialDiscriminator
 import matplotlib.pyplot as plt
 
 from perttf.model.train_data_gen import prepare_data,prepare_dataloader
+from perttf.utils.set_optimizer import create_optimizer_dict
 
 def train(model: nn.Module,
           loader: DataLoader,
@@ -179,6 +180,7 @@ def train(model: nn.Module,
                     .sum()
                     .item()
                 ) / celltype_labels.size(0)
+
             if config.perturbation_classifier_weight > 0:
                 loss_pert = criterion_pert(output_dict["pert_output"], perturbation_labels)
                 loss = loss + config.perturbation_classifier_weight * loss_pert
@@ -187,6 +189,7 @@ def train(model: nn.Module,
                 loss_pert_next = criterion_pert(output_dict["pert_output_next"], perturbation_labels_next)
                 loss = loss + config.perturbation_classifier_weight * config.next_weight * loss_pert_next
                 metrics_to_log.update({"train/pert_next": loss_pert_next.item()})
+
             if config.ps_weight >0:
                 loss_ps = criterion_ps(output_dict["ps_output"], ps_score)
                 #import pdb; pdb.set_trace()
@@ -332,6 +335,10 @@ def train(model: nn.Module,
             total_dab = 0
             total_adv_E = 0
             total_adv_D = 0
+            total_cls = 0
+            total_pert  = 0
+            total_ps  = 0
+
             start_time = time.time()
 
 
@@ -504,19 +511,23 @@ def eval_testdata(
 
     if "celltype" in adata_t.obs.columns and config.cell_type_classifier:
         celltypes_labels = adata_t.obs["celltype"].tolist()  # make sure count from 0
+        celltypes_labels = np.array(celltypes_labels)
+        celltypes_labels = np.array([cell_type_to_index[cell_type] for cell_type in celltypes_labels])
     else:
-        celltypes_labels = random.choices( [0,1], k=adata_t.shape[0])
+        #celltypes_labels = np.array(random.choices( [0,1], k=adata_t.shape[0]))
+        celltypes_labels = None
 
-    celltypes_labels = np.array(celltypes_labels)
-    celltypes_indexes = np.array([cell_type_to_index[cell_type] for cell_type in celltypes_labels])
+    
 
-    if "genotype" in adata_t.obs.columns and config.perturbation_classifier_weight > 0:
+    if "genotype" in adata_t.obs.columns and (config.perturbation_classifier_weight > 0 or config.perturbation_input):
         perturbation_labels = adata_t.obs["genotype"].tolist()  # make sure count from 0
+        perturbation_labels = np.array(perturbation_labels)
+        perturbation_labels = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels])
     else:
-        perturbation_labels = random.choices( [0,1], k=adata_t.shape[0])
-
-    perturbation_labels = np.array(perturbation_labels)
-    perturbation_indexes = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels])
+        #perturbation_labels = np.array(random.choices( [0,1], k=adata_t.shape[0]))
+        perturbation_labels = None
+    
+    
 
     # evaluate the next prediction?
     
@@ -524,16 +535,14 @@ def eval_testdata(
         next_cell_prediction = True
     else:
         next_cell_prediction = False
+
     if next_cell_prediction:
         perturbation_labels_next = adata_t.obs["genotype_next"].tolist()  # make sure count from 0
+        perturbation_labels_next = np.array(perturbation_labels_next)
+        perturbation_labels_next = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels_next])
     else:
-        perturbation_labels_next = random.choices( [0,1], k=adata_t.shape[0])
-
-    perturbation_labels_next = np.array(perturbation_labels_next)
-    if next_cell_prediction:
-        perturbation_indexes_next = np.array([genotype_to_index[perturbation_type] for perturbation_type in perturbation_labels_next])
-    else:
-        perturbation_indexes_next = None
+        #perturbation_labels_next = random.choices( [0,1], k=adata_t.shape[0])
+        perturbation_labels_next = None
     
     if "batch_id" in adata_t.obs.columns: # and config.DSBN:
         batch_ids = adata_t.obs["batch_id"].tolist()
@@ -588,8 +597,8 @@ def eval_testdata(
                 src_key_padding_mask=src_key_padding_mask,
                 batch_size=config.batch_size,
                 batch_labels=torch.from_numpy(batch_ids).long() if config.use_batch_label else None, # if config.DSBN else None,
-                pert_labels = torch.from_numpy(perturbation_indexes).long() if config.perturbation_input else None,
-                pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
+                pert_labels = torch.from_numpy(perturbation_labels).long() if config.perturbation_input else None,
+                pert_labels_next = torch.from_numpy(perturbation_labels_next).long() if next_cell_prediction else None,
                 time_step=0,
                 return_np=True,
                 predict_expr = predict_expr
@@ -798,66 +807,10 @@ def wrapper_train(model, config, data_gen,
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    scaler = torch.cuda.amp.GradScaler(enabled=config.amp)
-
-    DAB_separate_optim = True if config.dab_weight >0 else False
-
     num_batch_types = data_gen['num_batch_types']
     vocab = data_gen['vocab']
 
-    if config.ADV:
-        discriminator = AdversarialDiscriminator(
-            d_model=config.layer_size, # embsize
-            n_cls=num_batch_types,
-        ).to(device)
-        print(discriminator)
-    else:
-        discriminator = None
-
-    optimizer = torch.optim.Adam(
-        model.parameters(), lr=config.lr, eps=1e-4 if config.amp else 1e-8
-    )
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, gamma=config.schedule_ratio)
-
-    if DAB_separate_optim:
-        optimizer_dab = torch.optim.Adam(model.parameters(), lr=config.lr)
-        scheduler_dab = torch.optim.lr_scheduler.StepLR(
-            optimizer_dab, config.schedule_interval, gamma=config.schedule_ratio
-        )
-    else:
-        optimizer_dab = None
-        scheduler_dab = None
-
-    if config.ADV:
-        optimizer_E = torch.optim.Adam(model.parameters(), lr=config.lr_ADV)
-        scheduler_E = torch.optim.lr_scheduler.StepLR(
-            optimizer_E, config.schedule_interval, gamma=config.schedule_ratio
-        )
-        optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr_ADV)
-        scheduler_D = torch.optim.lr_scheduler.StepLR(
-            optimizer_D, config.schedule_interval, gamma=config.schedule_ratio
-        )
-    else:
-        optimizer_E = None
-        scheduler_E = None
-        optimizer_D = None
-        scheduler_D = None
-
-    optimizer_dict={
-        "scaler": scaler,
-        "discriminator": discriminator,
-        "optimizer": optimizer,
-        "scheduler": scheduler,
-        "optimizer_dab": optimizer_dab,
-        "scheduler_dab": scheduler_dab,
-        "optimizer_E": optimizer_E,
-        "scheduler_E": scheduler_E,
-        "optimizer_D": optimizer_D,
-        "scheduler_D": scheduler_D,
-    }
-
-
-
+    optimizer_dict = create_optimizer_dict(model, device, config, num_batch_types)
     best_val_loss = float("inf")
     best_avg_bio = 0.0
     best_model = None
@@ -882,30 +835,10 @@ def wrapper_train(model, config, data_gen,
     json.dump(config.as_dict(), open(save_dir / "config.json", "w"))
     # later, use the following to load json file
     #config_data = json.load(open(save_dir / 'config.json', 'r'))
-    
+    train_loader, valid_loader = data_gen['train_loader'], data_gen['valid_loader']
     for epoch in range(1, config.epochs + 1):
         epoch_start_time = time.time()
-        train_data_pt, valid_data_pt = prepare_data(
-            data_gen,
-            config,
-            sort_seq_batch=config.per_seq_batch_sample,
-            epoch = epoch)
-        train_loader = prepare_dataloader(
-            train_data_pt,
-            batch_size= config.batch_size,
-            config=config,
-            shuffle=True, # False, # default false
-            intra_domain_shuffle=True,
-            drop_last=False,
-        )
-        valid_loader = prepare_dataloader(
-            valid_data_pt,
-            batch_size=config.batch_size,
-            config=config,
-            shuffle=False,
-            intra_domain_shuffle=False,
-            drop_last=False,
-        )
+        
 
         if config.do_train:
             train(
@@ -1021,13 +954,13 @@ def wrapper_train(model, config, data_gen,
             wandb.log(metrics_to_log)
             # wandb.log({"avg_bio": results.get("avg_bio", 0.0)})
 
-        scheduler.step()
+        optimizer_dict['scheduler'].step()
 
-        if DAB_separate_optim:
-            scheduler_dab.step()
+        if optimizer_dict['DAB_separate_optim']:
+            optimizer_dict['scheduler_dab'].step()
         if config.ADV:
-            scheduler_D.step()
-            scheduler_E.step()
+            optimizer_dict['scheduler_D'].step()
+            optimizer_dict['scheduler_E'].step()
     
     # save the best model
     torch.save(best_model.state_dict(), save_dir / "best_model.pt")
