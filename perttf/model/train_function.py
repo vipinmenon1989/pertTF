@@ -54,11 +54,18 @@ def train(model: nn.Module,
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.train()
-    total_loss, total_mse, total_gepc = 0.0, 0.0, 0.0
-    total_mse_next, total_gepc_next = 0.0, 0.0
-    total_error, total_error_next = 0.0, 0.0
-    total_dab, total_adv_E, total_adv_D = 0.0, 0.0, 0.0
-    total_cls, total_pert, total_ps = 0.0, 0.0, 0.0
+    epoch_total_loss, epoch_total_mse, epoch_total_gepc = 0.0, 0.0, 0.0
+    epoch_total_mse_next, epoch_total_gepc_next = 0.0, 0.0
+    epoch_total_error, epoch_total_error_next = 0.0, 0.0
+    epoch_total_dab, epoch_total_adv_E, epoch_total_adv_D = 0.0, 0.0, 0.0
+    epoch_total_cls, epoch_total_pert, epoch_total_ps = 0.0, 0.0, 0.0
+
+    interval_loss = interval_mse = interval_gepc = 0.0
+    interval_mse_next = interval_gepc_next = 0.0
+    interval_error = interval_error_next = 0.0
+    interval_dab = interval_adv_E = interval_adv_D = 0.0
+    interval_cls = interval_pert = interval_ps = 0.0
+
     log_interval = config.log_interval
     start_time = time.time()
 
@@ -279,38 +286,47 @@ def train(model: nn.Module,
                 output_dict["mlm_output"], target_values_next, masked_positions
             )
 
-        total_loss += loss.item()
-        total_mse += loss_mse.item()
-        total_mse_next += loss_mse_next.item()
-        total_gepc += loss_gepc.item() if config.GEPC else 0.0
-        total_gepc_next += loss_gepc_next.item() if config.GEPC else 0.0
-        total_error += mre.item()
-        total_error_next += mre_next.item()
-
-        total_dab += loss_dab.item() if config.dab_weight >0 else 0.0
-        total_adv_E += loss_adv_E.item() if config.ADV else 0.0
-        total_adv_D += loss_adv_D.item() if config.ADV else 0.0
-
-        total_cls += loss_cls.item() if config.cell_type_classifier else 0.0
-        total_pert += loss_pert.item() if config.perturbation_classifier_weight > 0 else 0.0
-        total_ps += loss_ps.item() if config.ps_weight >0 else 0.0
+        epoch_total_mse += loss_mse.item()
+        interval_mse+= loss_mse.item()
+        epoch_total_mse_next += loss_mse_next.item()
+        interval_mse_next += loss_mse_next.item()
+        epoch_total_gepc += loss_gepc.item() if config.GEPC else 0.0
+        interval_gepc += loss_gepc.item() if config.GEPC else 0.0
+        epoch_total_gepc_next += loss_gepc_next.item() if config.GEPC else 0.0
+        interval_gepc_next+= loss_gepc_next.item() if config.GEPC else 0.0
+        epoch_total_error += mre.item()
+        interval_error += mre.item()
+        epoch_total_error_next += mre_next.item()
+        interval_error_next += mre_next.item()
+        epoch_total_dab += loss_dab.item() if config.dab_weight >0 else 0.0
+        interval_dab += loss_dab.item() if config.dab_weight >0 else 0.0
+        epoch_total_adv_E += loss_adv_E.item() if config.ADV else 0.0
+        interval_adv_E  += loss_adv_E.item() if config.ADV else 0.0
+        epoch_total_adv_D += loss_adv_D.item() if config.ADV else 0.0
+        interval_adv_D += loss_adv_D.item() if config.ADV else 0.0
+        epoch_total_cls += loss_cls.item() if config.cell_type_classifier else 0.0
+        interval_cls += loss_cls.item() if config.cell_type_classifier else 0.0
+        epoch_total_pert += loss_pert.item() if config.perturbation_classifier_weight > 0 else 0.0
+        interval_pert += loss_pert.item() if config.perturbation_classifier_weight > 0 else 0.0
+        epoch_total_ps += loss_ps.item() if config.ps_weight >0 else 0.0
+        interval_ps += loss_ps.item() if config.ps_weight >0 else 0.0
 
         if batch % log_interval == 0 and batch > 0:
             lr = scheduler.get_last_lr()[0]
             ms_per_batch = (time.time() - start_time) * 1000 / log_interval
-            cur_loss = total_loss / log_interval
-            cur_mse = total_mse / log_interval
-            cur_mse_next = total_mse_next / log_interval
-            cur_gepc = total_gepc / log_interval if config.GEPC else 0.0
-            cur_gepc_next = total_gepc_next / log_interval if config.GEPC else 0.0
-            cur_error = total_error / log_interval
-            cur_error_next = total_error_next / log_interval
-            cur_dab = total_dab / log_interval if config.dab_weight >0 else 0.0
-            cur_adv_E = total_adv_E / log_interval if config.ADV else 0.0
-            cur_adv_D = total_adv_D / log_interval if config.ADV else 0.0
-            cur_cls = total_cls / log_interval if config.cell_type_classifier else 0.0
-            cur_pert = total_pert / log_interval if config.perturbation_classifier_weight > 0 else 0.0
-            cur_ps = total_ps / log_interval if config.ps_weight >0 else 0.0
+            cur_loss = interval_loss / log_interval
+            cur_mse = interval_mse / log_interval
+            cur_mse_next = interval_mse_next / log_interval
+            cur_gepc = interval_gepc / log_interval if config.GEPC else 0.0
+            cur_gepc_next = interval_gepc_next / log_interval if config.GEPC else 0.0
+            cur_error = interval_error / log_interval
+            cur_error_next = interval_error_next / log_interval
+            cur_dab = interval_dab / log_interval if config.dab_weight >0 else 0.0
+            cur_adv_E = interval_adv_E / log_interval if config.ADV else 0.0
+            cur_adv_D = interval_adv_D / log_interval if config.ADV else 0.0
+            cur_cls = interval_cls / log_interval if config.cell_type_classifier else 0.0
+            cur_pert = interval_pert / log_interval if config.perturbation_classifier_weight > 0 else 0.0
+            cur_ps = interval_ps / log_interval if config.ps_weight >0 else 0.0
             # ppl = math.exp(cur_loss)
             if logger is not None:
                 logger.info(
@@ -325,34 +341,43 @@ def train(model: nn.Module,
                     + (f"adv_E {cur_adv_E:5.2f} |" if config.ADV else "")
                     + (f"adv_D {cur_adv_D:5.2f} |" if config.ADV else "")
                 )
-            total_loss = 0
-            total_mse = 0
-            total_mse_next = 0
-            total_gepc = 0
-            total_gepc_next = 0
-            total_error = 0
-            total_error_next = 0
-            total_dab = 0
-            total_adv_E = 0
-            total_adv_D = 0
-            total_cls = 0
-            total_pert  = 0
-            total_ps  = 0
-
+            interval_loss = interval_mse = interval_gepc = 0.0
+            interval_mse_next = interval_gepc_next = 0.0
+            interval_error = interval_error_next = 0.0
+            interval_dab = interval_adv_E = interval_adv_D = 0.0
+            interval_cls = interval_pert = interval_ps = 0.0
             start_time = time.time()
+    avg = lambda total: total / max(1, num_batches)
+    return {
+        "mse": avg(epoch_total_mse),
+        "mre": avg(epoch_total_error),
+        "mvc": avg(epoch_total_gepc) if config.GEPC else 0.0,
+        "cls": avg(epoch_total_cls) if config.cell_type_classifier else 0.0,
+        "pert": avg(epoch_total_pert) if config.perturbation_classifier_weight > 0 else 0.0,
+        "ps": avg(epoch_total_ps) if config.ps_weight > 0 else 0.0,
+        "dab": avg(epoch_total_dab) if config.dab_weight > 0 else 0.0,
+    }  
 
 
 def define_wandb_metrcis():
-    wandb.define_metric("valid/mse", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/mse_next", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/mre", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/mre_next", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/dab", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/cls", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/pert", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/ps", summary="min", step_metric="epoch")
-    wandb.define_metric("valid/sum_mse_dab", summary="min", step_metric="epoch")
-    wandb.define_metric("test/avg_bio", summary="max")
+    wandb.define_metric(f"valid/fold{fold}/mse", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/mre", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/mse_next", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/mre_next", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/dab", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/cls", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/pert", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/ps", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/val_loss_next", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/sum_mse_dab", summary="min", step_metric="epoch")
+    wandb.define_metric(f"valid/fold{fold}/val_loss", summary="min", step_metric="epoch")
+    wandb.define_metric(f"train/fold{fold}/mse", summary="min", step_metric="epoch")
+    wandb.define_metric(f"train/fold{fold}/mre", summary="min", step_metric="epoch")
+    wandb.define_metric(f"train/fold{fold}/mvc", summary="min", step_metric="epoch")
+    wandb.define_metric(f"train/fold{fold}/cls", summary="min", step_metric="epoch")
+    wandb.define_metric(f"train/fold{fold}/pert", summary="min", step_metric="epoch")
+    wandb.define_metric(f"train/fold{fold}/ps", summary="min", step_metric="epoch")
+    wandb.define_metric(f"train/fold{fold}/dab", summary="min", step_metric="epoch")
 
 
 def evaluate(model: nn.Module,
@@ -453,16 +478,16 @@ def evaluate(model: nn.Module,
 
     wandb.log(
         {
-            "valid/mse": total_loss / total_num,
-            "valid/mse_next": total_loss_next / total_num,
-            "valid/mre": total_error / total_num,
-            "valid/mre_next": total_error_next / total_num,
-            "valid/dab": total_dab / total_num,
-            "valid/cls": total_cls / total_num,
-            "valid/pert": total_pert / total_num,
-            "valid/ps": total_ps / total_num,
-            "valid/sum_mse_dab": (total_loss + config.dab_weight * total_dab)/ total_num,
-            "epoch": epoch,
+            f"valid/fold{fold}/mse": total_loss / total_num,
+            f"valid/fold{fold}/mse_next": total_loss_next / total_num,
+            f"valid/fold{fold}/mre": total_error / total_num,
+            f"valid/fold{fold}/mre_next": total_error_next / total_num,
+            f"valid/fold{fold}/dab": total_dab / total_num,
+            f"valid/fold{fold}/cls": total_cls / total_num,
+            f"valid/fold{fold}/pert": total_pert / total_num,
+            f"valid/fold{fold}/ps": total_ps / total_num,
+            f"valid/fold{fold}/sum_mse_dab": (total_loss + config.dab_weight * total_dab)/ total_num,
+            "epoch": epoch
         },
     )
 
@@ -800,11 +825,15 @@ def eval_testdata(
     results['adata'] = adata_t
     return results
 
+train_history = {"mse": [], "mre": [], "cls": [], "pert": [], "ps": [], "dab": []}
+valid_history = {"mse": [], "mre": [], "cls": [], "pert": [], "ps": [], "dab": []}
+epochs_list = []
+
 def wrapper_train(model, config, data_gen,
                   logger = scg.logger,
                   save_dir = None,
                   device = None,
-                  eval_adata_dict: Dict = {}):
+                  eval_adata_dict: Dict = {}, run = None):
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -816,7 +845,7 @@ def wrapper_train(model, config, data_gen,
     best_val_loss = float("inf")
     best_avg_bio = 0.0
     best_model = None
-    define_wandb_metrcis()
+    define_wandb_metrcis(fold)
 
     if save_dir is None:
         save_dir = Path(f"./save/dev_{config.dataset_name}-{time.strftime('%b%d-%H-%M')}/")
@@ -841,7 +870,7 @@ def wrapper_train(model, config, data_gen,
     for epoch in range(1, config.epochs + 1):
         epoch_start_time = time.time()
 
-
+        train_metrics = {}
         if config.do_train:
             train(
                 model,
@@ -853,6 +882,23 @@ def wrapper_train(model, config, data_gen,
                 logger = logger,
                 device = device
             )
+            wandb.log({
+                f"train/fold{fold}/mse": train_metrics["mse"],
+                f"train/fold{fold}/mre": train_metrics["mre"],
+                f"train/fold{fold}/mvc": train_metrics["mvc"],
+                f"train/fold{fold}/cls": train_metrics["cls"],
+                f"train/fold{fold}/pert": train_metrics["pert"],
+                f"train/fold{fold}/ps": train_metrics["ps"],
+                f"train/fold{fold}/dab": train_metrics["dab"],
+                "epoch": epoch,})
+        
+        epochs_list.append(epoch)
+        train_history["mse"].append(train_metrics.get("mse", None))
+        train_history["mre"].append(train_metrics.get("mre", None))
+        train_history["cls"].append(train_metrics.get("cls", None))
+        train_history["pert"].append(train_metrics.get("pert", None))
+        train_history["ps"].append(train_metrics.get("ps", None))
+        train_history["dab"].append(train_metrics.get("dab", None)) 
         val_loss, val_loss_next, val_mre, val_mre_next, val_dab, val_cls, val_pert, val_ps = evaluate(
             model,
             loader=valid_loader,
@@ -872,6 +918,27 @@ def wrapper_train(model, config, data_gen,
                 f"valid ps {val_ps:5.4f} |"
             )
             logger.info("-" * 89)
+        wandb.log({
+            f"valid/fold{fold}/val_loss": val_loss,
+            f"valid/fold{fold}/mre": val_mre,
+            f"valid/fold{fold}/val_loss_next": val_loss_next,
+            f"valid/fold{fold}/mre_next": val_mre_next,
+            f"valid/fold{fold}/dab": val_dab,
+            f"valid/fold{fold}/cls": val_cls,
+            f"valid/fold{fold}/pert": val_pert,
+            f"valid/fold{fold}/ps": val_ps},)
+        valid_history["mse"].append(val_loss)
+        valid_history["mre"].append(val_mre)
+        valid_history["cls"].append(val_cls)
+        valid_history["pert"].append(val_pert)
+        valid_history["ps"].append(val_ps)
+        valid_history["dab"].append(val_dab)
+        # save metric curves and raw history for this epoch
+        for m in ["mse", "mre", "cls", "pert", "ps", "dab"]:
+            save_metric_curve(m,train_history[m],valid_history[m],epochs_list,save_dir)
+        import pandas as pd
+        df_curves = pd.DataFrame({"epoch": epochs_list,**{f"train_{k}": train_history[k] for k in train_history},**{f"valid_{k}": valid_history[k] for k in valid_history}})
+        df_curves.to_csv(save_dir / f"curve_metrics_epoch{epoch:03d}.csv", index=False)
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -966,8 +1033,21 @@ def wrapper_train(model, config, data_gen,
 
     # save the best model
     torch.save(best_model.state_dict(), save_dir / "best_model.pt")
-
-    return best_model
+    torch.save(vocab, save_dir / "vocab.pt")
+    running_parameters={
+     'cell_type_to_index': data_gen["cell_type_to_index"],
+     'genotype_to_index': data_gen["genotype_to_index"],
+     'genes': data_gen["genes"], # genes,
+     'gene_ids': data_gen["gene_ids"], # gene_ids,
+     'ps_names': data_gen["ps_names"],
+     'config': config.as_dict(), # config as dictionary
+    }
+    torch.save(running_parameters, save_dir / "running_parameters.pt")
+    import json
+    json.dump(config.as_dict(), open(save_dir / "config.json", "w"))
+    # later, use the following to load json file
+    #config_data = json.load(open(save_dir / 'config.json', 'r'))
+    return {"model":best_model, "best_model_epoch": best_model_epoch, "best_val_loss": best_val_loss}
 
 
 
