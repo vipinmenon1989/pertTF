@@ -2,10 +2,28 @@ wandb: WARNING `start_method` is deprecated and will be removed in a future vers
 wandb: Currently logged in as: a-vipin-menon (a-vipin-menon-university-of-maryland-baltimore) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
 wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
 wandb: Tracking run with wandb version 0.20.1
-wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_173746-581bt4ua
+wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_192721-mgqilisn
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run olive-eon-135
+wandb: Syncing run fallen-planet-146
 wandb: ⭐️ View project at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT
-wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/581bt4ua
-[2025-08-26 17:37:47,660] INFO:cv_train_eval: Using device: cuda
-[2025-08-26 17:37:47,664] INFO:cv_train_eval: Outputs and checkpoints will be saved to /local/projects-t3/lilab/vmenon/Pert-TF-model/cv_pancreatic-Aug26-17-37
+wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/mgqilisn
+[2025-08-26 19:27:23,117] INFO:cv_train_eval: Using device: cuda
+[2025-08-26 19:27:23,119] INFO:cv_train_eval: Outputs and checkpoints will be saved to /local/projects-t3/lilab/vmenon/Pert-TF-model/cv_pancreatic-Aug26-19-27
+[2025-08-26 19:28:27,138] INFO:cv_train_eval: Loaded AnnData: n_obs=179178, n_vars=36601
+[2025-08-26 19:28:36,610] INFO:cv_train_eval: Dropped 0 cells missing sub.cluster (kept 179178/179178).
+[2025-08-26 19:28:46,811] INFO:cv_train_eval: Genotype thinning: kept 179178/179178 cells (~100.00%); WT kept 82891/82891 (~100.00%).
+[2025-08-26 19:29:23,696] INFO:cv_train_eval: HVG selection: kept 3000 genes (requested 3000).
+[2025-08-26 19:30:01,344] INFO:cv_train_eval: Preprocessing (binning) complete.
+[2025-08-26 19:30:01,355] INFO:cv_train_eval: ===== Fold 1/5 =====
+wandb: Finishing previous runs because reinit is set to True.
+wandb:                                                                                
+wandb: 🚀 View run fallen-planet-146 at: https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/mgqilisn
+wandb: ⭐️ View project at: https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20250826_192721-mgqilisn/logs
+wandb: Tracking run with wandb version 0.20.1
+wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_193009-7ifqo2l4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run hvg3000_10000_fold_1
+wandb: ⭐️ View project at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT
+wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/7ifqo2l4

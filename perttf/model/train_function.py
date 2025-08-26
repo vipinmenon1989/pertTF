@@ -31,6 +31,8 @@ import matplotlib.pyplot as plt
 
 from perttf.model.train_data_gen import prepare_data,prepare_dataloader
 from perttf.utils.set_optimizer import create_optimizer_dict
+from pathlib import Path
+import matplotlib.pyplot as plt
 
 def train(model: nn.Module,
           loader: DataLoader,
@@ -359,7 +361,7 @@ def train(model: nn.Module,
     }  
 
 
-def define_wandb_metrcis():
+def define_wandb_metrcis(fold: int):
     wandb.define_metric(f"valid/fold{fold}/mse", summary="min", step_metric="epoch")
     wandb.define_metric(f"valid/fold{fold}/mre", summary="min", step_metric="epoch")
     wandb.define_metric(f"valid/fold{fold}/mse_next", summary="min", step_metric="epoch")
@@ -385,6 +387,7 @@ def evaluate(model: nn.Module,
             config,
             vocab,
             epoch = 0,
+            fold = 0,
             device = None) -> float:
     """
     Evaluate the model on the evaluation data.
@@ -829,10 +832,27 @@ train_history = {"mse": [], "mre": [], "cls": [], "pert": [], "ps": [], "dab": [
 valid_history = {"mse": [], "mre": [], "cls": [], "pert": [], "ps": [], "dab": []}
 epochs_list = []
 
+def save_metric_curve(metric_name, train_values, valid_values, epochs, save_dir):
+    """
+    Save a line plot comparing train vs valid for a given metric.
+    """
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    fig = plt.figure()
+    plt.plot(epochs, train_values, label=f"train/{metric_name}")
+    plt.plot(epochs, valid_values, label=f"valid/{metric_name}")
+    plt.xlabel("epoch")
+    plt.ylabel(metric_name)
+    plt.legend()
+    plt.tight_layout()
+    fig.savefig(save_dir / f"curve_{metric_name}.png", dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
 def wrapper_train(model, config, data_gen,
                   logger = scg.logger,
                   save_dir = None,
                   device = None,
+                  fold = 0,
                   eval_adata_dict: Dict = {}, run = None):
 
     if device is None:
@@ -867,12 +887,17 @@ def wrapper_train(model, config, data_gen,
     # later, use the following to load json file
     #config_data = json.load(open(save_dir / 'config.json', 'r'))
     train_loader, valid_loader = data_gen['train_loader'], data_gen['valid_loader']
+    # Initialize trackers once per fold
+    epochs_list = []
+    train_history = {k: [] for k in ["mse","mre","cls","pert","ps","dab"]}
+    valid_history = {k: [] for k in ["mse","mre","cls","pert","ps","dab"]}
+    best_model_epoch = -1
     for epoch in range(1, config.epochs + 1):
         epoch_start_time = time.time()
 
         train_metrics = {}
         if config.do_train:
-            train(
+            train_metrics = train(
                 model,
                 train_loader,
                 config,
@@ -905,6 +930,7 @@ def wrapper_train(model, config, data_gen,
             config=config,
             vocab = vocab,
             epoch = epoch,
+            fold=fold,
             device = device
         )
         elapsed = time.time() - epoch_start_time
