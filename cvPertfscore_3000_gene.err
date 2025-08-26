@@ -1,0 +1,11 @@
+wandb: WARNING `start_method` is deprecated and will be removed in a future version of wandb. This setting is currently non-functional and safely ignored.
+wandb: Currently logged in as: a-vipin-menon (a-vipin-menon-university-of-maryland-baltimore) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
+wandb: Tracking run with wandb version 0.20.1
+wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_173746-581bt4ua
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run olive-eon-135
+wandb: ⭐️ View project at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT
+wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/581bt4ua
+[2025-08-26 17:37:47,660] INFO:cv_train_eval: Using device: cuda
+[2025-08-26 17:37:47,664] INFO:cv_train_eval: Outputs and checkpoints will be saved to /local/projects-t3/lilab/vmenon/Pert-TF-model/cv_pancreatic-Aug26-17-37

@@ -40,10 +40,10 @@ from scgpt.utils import set_seed
 from sklearn.metrics.pairwise import cosine_similarity
 from matplotlib import cm
 import csv
-from pertTF import PerturbationTFModel
-from config_gen import generate_config
-from train_data_gen import produce_training_datasets
-from train_function import train, wrapper_train, eval_testdata
+from perttf.model.pertTF import PerturbationTFModel
+from perttf.model.config_gen import generate_config
+from perttf.model.train_data_gen import produce_training_datasets
+from perttf.model.train_function import train, wrapper_train, eval_testdata
 import wandb, random
 from sklearn.model_selection import KFold
 
@@ -61,7 +61,7 @@ hyperparameter_defaults = dict(
     ecs_thres=0.7,
     dab_weight=0.0,
     this_weight=1.0,
-    next_weight=0.0,
+    next_weight=10.0,
     n_rounds=1,
     next_cell_pred_type='identity',
     ecs_weight=1.0,
@@ -71,7 +71,7 @@ hyperparameter_defaults = dict(
     perturbation_input=False,
     CCE=False,
     mask_ratio=0.15,
-    epochs=60,
+    epochs=150,
     n_bins=51,
     lr=1e-3,
     batch_size=32,
@@ -99,7 +99,7 @@ hyperparameter_defaults = dict(
 
     # === analysis knobs ===
     USE_HVG=True,          # True -> select HVGs; False -> keep all genes
-    n_hvg=10000,            # number of HVGs when USE_HVG=True
+    n_hvg=3000,            # number of HVGs when USE_HVG=True
     mask_value=-1,
     pad_value=-2,
     pad_token="<pad>",
@@ -248,7 +248,7 @@ for fold, (train_idx, val_idx) in enumerate(kf.split(obs_names), start=1):
     adata.obs.loc[val_barcodes, 'split'] = 'validation'
 
     # produce fold-specific data
-    fold_data = produce_training_datasets(adata, config, next_cell_pred='identity')
+    fold_data = produce_training_datasets(adata, config, next_cell_pred='pert')
 
     # save vocab
     vocab = fold_data['vocab']
