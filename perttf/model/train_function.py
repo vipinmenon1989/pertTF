@@ -630,8 +630,7 @@ def eval_testdata(
                 pert_labels = torch.from_numpy(perturbation_indexes).long() if config.perturbation_input else None,
                 pert_labels_next = torch.from_numpy(perturbation_indexes_next).long() if next_cell_prediction else None,
                 time_step=0,
-                return_np=True,
-                predict_expr = predict_expr
+                return_np=True
             )
 
         cell_embeddings = cell_embeddings / np.linalg.norm(

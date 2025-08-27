@@ -2,28 +2,1071 @@ wandb: WARNING `start_method` is deprecated and will be removed in a future vers
 wandb: Currently logged in as: a-vipin-menon (a-vipin-menon-university-of-maryland-baltimore) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
 wandb: WARNING Using a boolean value for 'reinit' is deprecated. Use 'return_previous' or 'finish_previous' instead.
 wandb: Tracking run with wandb version 0.20.1
-wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_192721-mgqilisn
+wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_223812-xuu5okan
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run fallen-planet-146
+wandb: Syncing run smart-morning-148
 wandb: ⭐️ View project at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT
-wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/mgqilisn
-[2025-08-26 19:27:23,117] INFO:cv_train_eval: Using device: cuda
-[2025-08-26 19:27:23,119] INFO:cv_train_eval: Outputs and checkpoints will be saved to /local/projects-t3/lilab/vmenon/Pert-TF-model/cv_pancreatic-Aug26-19-27
-[2025-08-26 19:28:27,138] INFO:cv_train_eval: Loaded AnnData: n_obs=179178, n_vars=36601
-[2025-08-26 19:28:36,610] INFO:cv_train_eval: Dropped 0 cells missing sub.cluster (kept 179178/179178).
-[2025-08-26 19:28:46,811] INFO:cv_train_eval: Genotype thinning: kept 179178/179178 cells (~100.00%); WT kept 82891/82891 (~100.00%).
-[2025-08-26 19:29:23,696] INFO:cv_train_eval: HVG selection: kept 3000 genes (requested 3000).
-[2025-08-26 19:30:01,344] INFO:cv_train_eval: Preprocessing (binning) complete.
-[2025-08-26 19:30:01,355] INFO:cv_train_eval: ===== Fold 1/5 =====
+wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/xuu5okan
+[2025-08-26 22:38:14,138] INFO:cv_train_eval: Using device: cuda
+[2025-08-26 22:38:14,149] INFO:cv_train_eval: Outputs and checkpoints will be saved to /local/projects-t3/lilab/vmenon/Pert-TF-model/cv_pancreatic-Aug26-22-38
+[2025-08-26 22:39:21,564] INFO:cv_train_eval: Loaded AnnData: n_obs=179178, n_vars=36601
+[2025-08-26 22:39:31,758] INFO:cv_train_eval: Dropped 0 cells missing sub.cluster (kept 179178/179178).
+[2025-08-26 22:39:42,813] INFO:cv_train_eval: Genotype thinning: kept 179178/179178 cells (~100.00%); WT kept 82891/82891 (~100.00%).
+[2025-08-26 22:40:18,981] INFO:cv_train_eval: HVG selection: kept 3000 genes (requested 3000).
+[2025-08-26 22:40:59,388] INFO:cv_train_eval: Preprocessing (binning) complete.
+[2025-08-26 22:40:59,400] INFO:cv_train_eval: ===== Fold 1/5 =====
 wandb: Finishing previous runs because reinit is set to True.
 wandb:                                                                                
-wandb: 🚀 View run fallen-planet-146 at: https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/mgqilisn
+wandb: 🚀 View run smart-morning-148 at: https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/xuu5okan
 wandb: ⭐️ View project at: https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT
 wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: ./wandb/run-20250826_192721-mgqilisn/logs
+wandb: Find logs at: ./wandb/run-20250826_223812-xuu5okan/logs
 wandb: Tracking run with wandb version 0.20.1
-wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_193009-7ifqo2l4
+wandb: Run data is saved locally in /autofs/projects-t3/lilab/vmenon/Pert-TF-model/pertTF/wandb/run-20250826_224108-0i77otrm
 wandb: Run `wandb offline` to turn off syncing.
 wandb: Syncing run hvg3000_10000_fold_1
 wandb: ⭐️ View project at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT
-wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/7ifqo2l4
+wandb: 🚀 View run at https://wandb.ai/a-vipin-menon-university-of-maryland-baltimore/scGPT/runs/0i77otrm
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f0d00001d0b'
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f0c00001d09'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f0b00001d0c'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f0a00001d0a'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f5900001d0d'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f5800001d0e'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f5700001d10'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14f5b00001d0f'
+  0%|          | 0/1120 [00:00<?, ?it/s]  1%|          | 11/1120 [00:00<00:10, 107.02it/s]  2%|▏         | 22/1120 [00:00<00:10, 107.57it/s]  3%|▎         | 33/1120 [00:00<00:10, 107.82it/s]  4%|▍         | 44/1120 [00:00<00:09, 107.96it/s]  5%|▍         | 55/1120 [00:00<00:09, 108.04it/s]  6%|▌         | 66/1120 [00:00<00:09, 108.08it/s]  7%|▋         | 77/1120 [00:00<00:09, 108.03it/s]  8%|▊         | 88/1120 [00:00<00:09, 108.03it/s]  9%|▉         | 99/1120 [00:00<00:09, 108.11it/s] 10%|▉         | 110/1120 [00:01<00:09, 108.13it/s] 11%|█         | 121/1120 [00:01<00:09, 108.16it/s] 12%|█▏        | 132/1120 [00:01<00:09, 107.84it/s] 13%|█▎        | 143/1120 [00:01<00:09, 106.00it/s] 14%|█▍        | 154/1120 [00:01<00:09, 106.66it/s] 15%|█▍        | 165/1120 [00:01<00:08, 107.23it/s] 16%|█▌        | 176/1120 [00:01<00:08, 107.52it/s] 17%|█▋        | 187/1120 [00:01<00:08, 107.71it/s] 18%|█▊        | 198/1120 [00:01<00:08, 107.89it/s] 19%|█▊        | 209/1120 [00:01<00:08, 106.83it/s] 20%|█▉        | 220/1120 [00:02<00:08, 106.91it/s] 21%|██        | 231/1120 [00:02<00:08, 106.93it/s] 22%|██▏       | 242/1120 [00:02<00:08, 106.97it/s] 23%|██▎       | 253/1120 [00:02<00:08, 106.98it/s] 24%|██▎       | 264/1120 [00:02<00:08, 106.27it/s] 25%|██▍       | 275/1120 [00:02<00:08, 93.93it/s]  26%|██▌       | 286/1120 [00:02<00:08, 96.99it/s] 27%|██▋       | 297/1120 [00:02<00:08, 99.64it/s] 28%|██▊       | 308/1120 [00:02<00:08, 100.59it/s] 28%|██▊       | 319/1120 [00:03<00:07, 100.87it/s] 29%|██▉       | 330/1120 [00:03<00:07, 101.92it/s] 30%|███       | 341/1120 [00:03<00:07, 102.80it/s] 31%|███▏      | 352/1120 [00:03<00:07, 103.57it/s] 32%|███▏      | 363/1120 [00:03<00:07, 102.70it/s] 33%|███▎      | 374/1120 [00:03<00:07, 103.38it/s] 34%|███▍      | 385/1120 [00:03<00:07, 103.90it/s] 35%|███▌      | 396/1120 [00:03<00:06, 104.07it/s] 36%|███▋      | 407/1120 [00:03<00:06, 104.32it/s] 37%|███▋      | 418/1120 [00:03<00:06, 104.48it/s] 38%|███▊      | 429/1120 [00:04<00:06, 104.44it/s] 39%|███▉      | 440/1120 [00:04<00:06, 104.43it/s] 40%|████      | 451/1120 [00:04<00:06, 104.64it/s] 41%|████▏     | 462/1120 [00:04<00:06, 104.65it/s] 42%|████▏     | 473/1120 [00:04<00:06, 104.75it/s] 43%|████▎     | 484/1120 [00:04<00:06, 104.84it/s] 44%|████▍     | 495/1120 [00:04<00:05, 104.88it/s] 45%|████▌     | 506/1120 [00:04<00:05, 104.97it/s] 46%|████▌     | 517/1120 [00:04<00:05, 105.04it/s] 47%|████▋     | 528/1120 [00:05<00:05, 105.12it/s] 48%|████▊     | 539/1120 [00:05<00:05, 105.16it/s] 49%|████▉     | 550/1120 [00:05<00:05, 105.23it/s] 50%|█████     | 561/1120 [00:05<00:05, 105.26it/s] 51%|█████     | 572/1120 [00:05<00:05, 105.11it/s] 52%|█████▏    | 583/1120 [00:05<00:05, 105.19it/s] 53%|█████▎    | 594/1120 [00:05<00:05, 105.17it/s] 54%|█████▍    | 605/1120 [00:05<00:04, 104.98it/s] 55%|█████▌    | 616/1120 [00:05<00:04, 105.02it/s] 56%|█████▌    | 627/1120 [00:05<00:04, 105.11it/s] 57%|█████▋    | 638/1120 [00:06<00:04, 105.18it/s] 58%|█████▊    | 649/1120 [00:06<00:04, 105.24it/s] 59%|█████▉    | 660/1120 [00:06<00:04, 105.25it/s] 60%|█████▉    | 671/1120 [00:06<00:04, 105.29it/s] 61%|██████    | 682/1120 [00:06<00:04, 105.28it/s] 62%|██████▏   | 693/1120 [00:06<00:04, 105.28it/s] 63%|██████▎   | 704/1120 [00:06<00:03, 105.27it/s] 64%|██████▍   | 715/1120 [00:06<00:03, 105.30it/s] 65%|██████▍   | 726/1120 [00:06<00:03, 105.26it/s] 66%|██████▌   | 737/1120 [00:07<00:03, 105.29it/s] 67%|██████▋   | 748/1120 [00:07<00:03, 105.26it/s] 68%|██████▊   | 759/1120 [00:07<00:03, 105.32it/s] 69%|██████▉   | 770/1120 [00:07<00:03, 105.30it/s] 70%|██████▉   | 781/1120 [00:07<00:03, 105.32it/s] 71%|███████   | 792/1120 [00:07<00:03, 105.27it/s] 72%|███████▏  | 803/1120 [00:07<00:03, 105.27it/s] 73%|███████▎  | 814/1120 [00:07<00:02, 105.28it/s] 74%|███████▎  | 825/1120 [00:07<00:02, 105.25it/s] 75%|███████▍  | 836/1120 [00:07<00:02, 105.27it/s] 76%|███████▌  | 847/1120 [00:08<00:02, 105.30it/s] 77%|███████▋  | 858/1120 [00:08<00:02, 105.15it/s] 78%|███████▊  | 869/1120 [00:08<00:02, 105.20it/s] 79%|███████▊  | 880/1120 [00:08<00:02, 105.25it/s] 80%|███████▉  | 891/1120 [00:08<00:02, 105.26it/s] 81%|████████  | 902/1120 [00:08<00:02, 105.30it/s] 82%|████████▏ | 913/1120 [00:08<00:01, 103.93it/s] 82%|████████▎ | 924/1120 [00:08<00:01, 104.34it/s] 83%|████████▎ | 935/1120 [00:08<00:01, 104.61it/s] 84%|████████▍ | 946/1120 [00:09<00:01, 104.47it/s] 85%|████████▌ | 957/1120 [00:09<00:01, 103.37it/s] 86%|████████▋ | 968/1120 [00:09<00:01, 103.95it/s] 87%|████████▋ | 979/1120 [00:09<00:01, 102.11it/s] 88%|████████▊ | 990/1120 [00:09<00:01, 100.55it/s] 89%|████████▉ | 1001/1120 [00:09<00:01, 100.57it/s] 90%|█████████ | 1012/1120 [00:09<00:01, 100.62it/s] 91%|█████████▏| 1023/1120 [00:09<00:00, 100.37it/s] 92%|█████████▏| 1034/1120 [00:09<00:00, 100.32it/s] 93%|█████████▎| 1045/1120 [00:09<00:00, 100.31it/s] 94%|█████████▍| 1056/1120 [00:10<00:00, 100.30it/s] 95%|█████████▌| 1067/1120 [00:10<00:00, 100.35it/s] 96%|█████████▋| 1078/1120 [00:10<00:00, 100.43it/s] 97%|█████████▋| 1089/1120 [00:10<00:00, 100.49it/s] 98%|█████████▊| 1100/1120 [00:10<00:00, 100.55it/s] 99%|█████████▉| 1111/1120 [00:10<00:00, 100.61it/s]100%|██████████| 1120/1120 [00:10<00:00, 104.30it/s]
+... storing 'gene' as categorical
+... storing 'split' as categorical
+... storing 'str_batch' as categorical
+... storing 'genotype_next' as categorical
+... storing 'predicted_genotype' as categorical
+... storing 'predicted_celltype' as categorical
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14fac00001d40'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14fad00001d3e'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14fa900001d41'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14faa00001d3f'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14fd500001d43'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14fd400001d42'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62432600001d44'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14fd800001d45'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62432b00001d47'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14fdb00001d49'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62432a00001d46'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62432800001d48'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd3f700001d4b'
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd3fb00001d4a'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd3fa00001d4c'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc14ff800001d4d'
+  0%|          | 0/1120 [00:00<?, ?it/s]  1%|          | 11/1120 [00:00<00:10, 106.00it/s]  2%|▏         | 22/1120 [00:00<00:10, 107.62it/s]  3%|▎         | 33/1120 [00:00<00:10, 108.19it/s]  4%|▍         | 44/1120 [00:00<00:09, 108.52it/s]  5%|▍         | 55/1120 [00:00<00:09, 108.68it/s]  6%|▌         | 66/1120 [00:00<00:09, 108.32it/s]  7%|▋         | 77/1120 [00:00<00:09, 108.26it/s]  8%|▊         | 88/1120 [00:00<00:09, 108.14it/s]  9%|▉         | 99/1120 [00:00<00:09, 108.10it/s] 10%|▉         | 110/1120 [00:01<00:09, 106.95it/s] 11%|█         | 121/1120 [00:01<00:09, 106.55it/s] 12%|█▏        | 132/1120 [00:01<00:09, 106.97it/s] 13%|█▎        | 143/1120 [00:01<00:09, 107.24it/s] 14%|█▍        | 154/1120 [00:01<00:08, 107.60it/s] 15%|█▍        | 165/1120 [00:01<00:08, 107.72it/s] 16%|█▌        | 176/1120 [00:01<00:08, 107.76it/s] 17%|█▋        | 187/1120 [00:01<00:08, 107.88it/s] 18%|█▊        | 198/1120 [00:01<00:08, 107.88it/s] 19%|█▊        | 209/1120 [00:01<00:08, 107.79it/s] 20%|█▉        | 220/1120 [00:02<00:08, 107.82it/s] 21%|██        | 231/1120 [00:02<00:08, 107.82it/s] 22%|██▏       | 242/1120 [00:02<00:08, 107.86it/s] 23%|██▎       | 253/1120 [00:02<00:08, 107.26it/s] 24%|██▎       | 264/1120 [00:02<00:07, 107.48it/s] 25%|██▍       | 275/1120 [00:02<00:07, 107.67it/s] 26%|██▌       | 286/1120 [00:02<00:07, 107.53it/s] 27%|██▋       | 297/1120 [00:02<00:07, 107.55it/s] 28%|██▊       | 308/1120 [00:02<00:07, 107.65it/s] 28%|██▊       | 319/1120 [00:02<00:07, 107.79it/s] 29%|██▉       | 330/1120 [00:03<00:07, 107.93it/s] 30%|███       | 341/1120 [00:03<00:07, 107.08it/s] 31%|███▏      | 352/1120 [00:03<00:07, 107.47it/s] 32%|███▏      | 363/1120 [00:03<00:07, 107.66it/s] 33%|███▎      | 374/1120 [00:03<00:06, 107.77it/s] 34%|███▍      | 385/1120 [00:03<00:06, 107.07it/s] 35%|███▌      | 396/1120 [00:03<00:06, 107.40it/s] 36%|███▋      | 407/1120 [00:03<00:06, 107.59it/s] 37%|███▋      | 418/1120 [00:03<00:06, 107.74it/s] 38%|███▊      | 429/1120 [00:03<00:06, 106.56it/s] 39%|███▉      | 440/1120 [00:04<00:06, 106.90it/s] 40%|████      | 451/1120 [00:04<00:06, 106.22it/s] 41%|████▏     | 462/1120 [00:04<00:06, 106.64it/s] 42%|████▏     | 473/1120 [00:04<00:06, 105.95it/s] 43%|████▎     | 484/1120 [00:04<00:05, 106.45it/s] 44%|████▍     | 495/1120 [00:04<00:05, 106.81it/s] 45%|████▌     | 506/1120 [00:04<00:05, 107.04it/s] 46%|████▌     | 517/1120 [00:04<00:05, 107.22it/s] 47%|████▋     | 528/1120 [00:04<00:05, 106.54it/s] 48%|████▊     | 539/1120 [00:05<00:05, 106.83it/s] 49%|████▉     | 550/1120 [00:05<00:05, 107.03it/s] 50%|█████     | 561/1120 [00:05<00:05, 107.19it/s] 51%|█████     | 572/1120 [00:05<00:05, 105.76it/s] 52%|█████▏    | 583/1120 [00:05<00:05, 106.34it/s] 53%|█████▎    | 594/1120 [00:05<00:04, 106.74it/s] 54%|█████▍    | 605/1120 [00:05<00:04, 107.06it/s] 55%|█████▌    | 616/1120 [00:05<00:04, 106.10it/s] 56%|█████▌    | 627/1120 [00:05<00:04, 106.53it/s] 57%|█████▋    | 638/1120 [00:05<00:04, 106.92it/s] 58%|█████▊    | 649/1120 [00:06<00:04, 106.20it/s] 59%|█████▉    | 660/1120 [00:06<00:04, 106.64it/s] 60%|█████▉    | 671/1120 [00:06<00:04, 106.69it/s] 61%|██████    | 682/1120 [00:06<00:04, 106.97it/s] 62%|██████▏   | 693/1120 [00:06<00:03, 107.18it/s] 63%|██████▎   | 704/1120 [00:06<00:03, 107.27it/s] 64%|██████▍   | 715/1120 [00:06<00:03, 107.33it/s] 65%|██████▍   | 726/1120 [00:06<00:03, 107.40it/s] 66%|██████▌   | 737/1120 [00:06<00:03, 107.44it/s] 67%|██████▋   | 748/1120 [00:06<00:03, 107.47it/s] 68%|██████▊   | 759/1120 [00:07<00:03, 107.50it/s] 69%|██████▉   | 770/1120 [00:07<00:03, 107.52it/s] 70%|██████▉   | 781/1120 [00:07<00:03, 106.75it/s] 71%|███████   | 792/1120 [00:07<00:03, 106.74it/s] 72%|███████▏  | 803/1120 [00:07<00:02, 106.12it/s] 73%|███████▎  | 814/1120 [00:07<00:02, 106.49it/s] 74%|███████▎  | 825/1120 [00:07<00:02, 106.81it/s] 75%|███████▍  | 836/1120 [00:07<00:02, 107.03it/s] 76%|███████▌  | 847/1120 [00:07<00:02, 107.23it/s] 77%|███████▋  | 858/1120 [00:08<00:02, 107.33it/s] 78%|███████▊  | 869/1120 [00:08<00:02, 107.45it/s] 79%|███████▊  | 880/1120 [00:08<00:02, 107.53it/s] 80%|███████▉  | 891/1120 [00:08<00:02, 107.62it/s] 81%|████████  | 902/1120 [00:08<00:02, 107.60it/s] 82%|████████▏ | 913/1120 [00:08<00:01, 107.54it/s] 82%|████████▎ | 924/1120 [00:08<00:01, 107.59it/s] 83%|████████▎ | 935/1120 [00:08<00:01, 107.57it/s] 84%|████████▍ | 946/1120 [00:08<00:01, 106.65it/s] 85%|████████▌ | 957/1120 [00:08<00:01, 106.93it/s] 86%|████████▋ | 968/1120 [00:09<00:01, 106.23it/s] 87%|████████▋ | 979/1120 [00:09<00:01, 106.61it/s] 88%|████████▊ | 990/1120 [00:09<00:01, 106.90it/s] 89%|████████▉ | 1001/1120 [00:09<00:01, 107.09it/s] 90%|█████████ | 1012/1120 [00:09<00:01, 107.30it/s] 91%|█████████▏| 1023/1120 [00:09<00:00, 107.38it/s] 92%|█████████▏| 1034/1120 [00:09<00:00, 107.48it/s] 93%|█████████▎| 1045/1120 [00:09<00:00, 107.53it/s] 94%|█████████▍| 1056/1120 [00:09<00:00, 107.62it/s] 95%|█████████▌| 1067/1120 [00:09<00:00, 107.63it/s] 96%|█████████▋| 1078/1120 [00:10<00:00, 107.68it/s] 97%|█████████▋| 1089/1120 [00:10<00:00, 107.64it/s] 98%|█████████▊| 1100/1120 [00:10<00:00, 107.63it/s] 99%|█████████▉| 1111/1120 [00:10<00:00, 107.60it/s]100%|██████████| 1120/1120 [00:10<00:00, 107.26it/s]
+... storing 'gene' as categorical
+... storing 'split' as categorical
+... storing 'str_batch' as categorical
+... storing 'genotype_next' as categorical
+... storing 'predicted_genotype' as categorical
+... storing 'predicted_celltype' as categorical
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd40e00001d52'
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd41100001d4f'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd41000001d50'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1501100001d51'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd43000001d53'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1502f00001d54'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1503100001d55'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1502e00001d56'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd4a700001d6b'
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd4a400001d6a'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd4a800001d6c'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs0000000719ffd4aa00001d69'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1505f00001d6f'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1505d00001d6d'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1505c00001d6e'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1505e00001d70'
+  0%|          | 0/1120 [00:00<?, ?it/s]  1%|          | 11/1120 [00:00<00:10, 106.71it/s]  2%|▏         | 22/1120 [00:00<00:10, 107.24it/s]  3%|▎         | 33/1120 [00:00<00:10, 107.44it/s]  4%|▍         | 44/1120 [00:00<00:10, 107.59it/s]  5%|▍         | 55/1120 [00:00<00:09, 107.65it/s]  6%|▌         | 66/1120 [00:00<00:09, 107.76it/s]  7%|▋         | 77/1120 [00:00<00:09, 107.75it/s]  8%|▊         | 88/1120 [00:00<00:09, 107.84it/s]  9%|▉         | 99/1120 [00:00<00:09, 107.53it/s] 10%|▉         | 110/1120 [00:01<00:09, 107.31it/s] 11%|█         | 121/1120 [00:01<00:09, 107.13it/s] 12%|█▏        | 132/1120 [00:01<00:09, 106.53it/s] 13%|█▎        | 143/1120 [00:01<00:09, 106.58it/s] 14%|█▍        | 154/1120 [00:01<00:09, 106.64it/s] 15%|█▍        | 165/1120 [00:01<00:08, 106.67it/s] 16%|█▌        | 176/1120 [00:01<00:08, 105.60it/s] 17%|█▋        | 187/1120 [00:01<00:08, 105.33it/s] 18%|█▊        | 198/1120 [00:01<00:08, 103.20it/s] 19%|█▊        | 209/1120 [00:01<00:08, 103.57it/s] 20%|█▉        | 220/1120 [00:02<00:08, 103.35it/s] 21%|██        | 231/1120 [00:02<00:08, 103.80it/s] 22%|██▏       | 242/1120 [00:02<00:08, 104.13it/s] 23%|██▎       | 253/1120 [00:02<00:08, 104.33it/s] 24%|██▎       | 264/1120 [00:02<00:08, 104.47it/s] 25%|██▍       | 275/1120 [00:02<00:08, 104.57it/s] 26%|██▌       | 286/1120 [00:02<00:07, 104.65it/s] 27%|██▋       | 297/1120 [00:02<00:07, 104.68it/s] 28%|██▊       | 308/1120 [00:02<00:07, 104.44it/s] 28%|██▊       | 319/1120 [00:03<00:07, 104.54it/s] 29%|██▉       | 330/1120 [00:03<00:07, 104.63it/s] 30%|███       | 341/1120 [00:03<00:07, 104.64it/s] 31%|███▏      | 352/1120 [00:03<00:07, 104.72it/s] 32%|███▏      | 363/1120 [00:03<00:07, 104.13it/s] 33%|███▎      | 374/1120 [00:03<00:07, 103.72it/s] 34%|███▍      | 385/1120 [00:03<00:07, 104.10it/s] 35%|███▌      | 396/1120 [00:03<00:06, 104.39it/s] 36%|███▋      | 407/1120 [00:03<00:06, 104.57it/s] 37%|███▋      | 418/1120 [00:03<00:06, 104.69it/s] 38%|███▊      | 429/1120 [00:04<00:06, 104.75it/s] 39%|███▉      | 440/1120 [00:04<00:06, 104.86it/s] 40%|████      | 451/1120 [00:04<00:06, 104.78it/s] 41%|████▏     | 462/1120 [00:04<00:06, 104.80it/s] 42%|████▏     | 473/1120 [00:04<00:06, 104.88it/s] 43%|████▎     | 484/1120 [00:04<00:06, 104.79it/s] 44%|████▍     | 495/1120 [00:04<00:05, 104.87it/s] 45%|████▌     | 506/1120 [00:04<00:05, 104.84it/s] 46%|████▌     | 517/1120 [00:04<00:05, 104.92it/s] 47%|████▋     | 528/1120 [00:05<00:05, 103.74it/s] 48%|████▊     | 539/1120 [00:05<00:05, 104.18it/s] 49%|████▉     | 550/1120 [00:05<00:05, 103.56it/s] 50%|█████     | 561/1120 [00:05<00:05, 103.92it/s] 51%|█████     | 572/1120 [00:05<00:05, 104.20it/s] 52%|█████▏    | 583/1120 [00:05<00:05, 104.40it/s] 53%|█████▎    | 594/1120 [00:05<00:05, 104.55it/s] 54%|█████▍    | 605/1120 [00:05<00:04, 104.68it/s] 55%|█████▌    | 616/1120 [00:05<00:04, 104.74it/s] 56%|█████▌    | 627/1120 [00:05<00:04, 104.79it/s] 57%|█████▋    | 638/1120 [00:06<00:04, 104.87it/s] 58%|█████▊    | 649/1120 [00:06<00:04, 104.94it/s] 59%|█████▉    | 660/1120 [00:06<00:04, 104.98it/s] 60%|█████▉    | 671/1120 [00:06<00:04, 105.04it/s] 61%|██████    | 682/1120 [00:06<00:04, 104.41it/s] 62%|██████▏   | 693/1120 [00:06<00:04, 104.56it/s] 63%|██████▎   | 704/1120 [00:06<00:04, 103.48it/s] 64%|██████▍   | 715/1120 [00:06<00:03, 103.84it/s] 65%|██████▍   | 726/1120 [00:06<00:03, 104.15it/s] 66%|██████▌   | 737/1120 [00:07<00:03, 104.39it/s] 67%|██████▋   | 748/1120 [00:07<00:03, 104.60it/s] 68%|██████▊   | 759/1120 [00:07<00:03, 104.67it/s] 69%|██████▉   | 770/1120 [00:07<00:03, 104.81it/s] 70%|██████▉   | 781/1120 [00:07<00:03, 104.87it/s] 71%|███████   | 792/1120 [00:07<00:03, 104.92it/s] 72%|███████▏  | 803/1120 [00:07<00:03, 104.93it/s] 73%|███████▎  | 814/1120 [00:07<00:02, 104.98it/s] 74%|███████▎  | 825/1120 [00:07<00:02, 104.68it/s] 75%|███████▍  | 836/1120 [00:07<00:02, 104.76it/s] 76%|███████▌  | 847/1120 [00:08<00:02, 104.86it/s] 77%|███████▋  | 858/1120 [00:08<00:02, 104.90it/s] 78%|███████▊  | 869/1120 [00:08<00:02, 104.95it/s] 79%|███████▊  | 880/1120 [00:08<00:02, 105.02it/s] 80%|███████▉  | 891/1120 [00:08<00:02, 104.96it/s] 81%|████████  | 902/1120 [00:08<00:02, 105.00it/s] 82%|████████▏ | 913/1120 [00:08<00:01, 105.01it/s] 82%|████████▎ | 924/1120 [00:08<00:01, 104.98it/s] 83%|████████▎ | 935/1120 [00:08<00:01, 105.03it/s] 84%|████████▍ | 946/1120 [00:09<00:01, 105.00it/s] 85%|████████▌ | 957/1120 [00:09<00:01, 103.91it/s] 86%|████████▋ | 968/1120 [00:09<00:01, 104.23it/s] 87%|████████▋ | 979/1120 [00:09<00:01, 104.46it/s] 88%|████████▊ | 990/1120 [00:09<00:01, 104.65it/s] 89%|████████▉ | 1001/1120 [00:09<00:01, 104.33it/s] 90%|█████████ | 1012/1120 [00:09<00:01, 103.82it/s] 91%|█████████▏| 1023/1120 [00:09<00:00, 103.64it/s] 92%|█████████▏| 1034/1120 [00:09<00:00, 103.88it/s] 93%|█████████▎| 1045/1120 [00:09<00:00, 104.27it/s] 94%|█████████▍| 1056/1120 [00:10<00:00, 104.59it/s] 95%|█████████▌| 1067/1120 [00:10<00:00, 104.81it/s] 96%|█████████▋| 1078/1120 [00:10<00:00, 104.27it/s] 97%|█████████▋| 1089/1120 [00:10<00:00, 104.53it/s] 98%|█████████▊| 1100/1120 [00:10<00:00, 104.74it/s] 99%|█████████▉| 1111/1120 [00:10<00:00, 103.64it/s]100%|██████████| 1120/1120 [00:10<00:00, 104.83it/s]
+... storing 'gene' as categorical
+... storing 'split' as categorical
+... storing 'str_batch' as categorical
+... storing 'genotype_next' as categorical
+... storing 'predicted_genotype' as categorical
+... storing 'predicted_celltype' as categorical
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62435a00001d74'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1506c00001d71'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1506900001d73'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1506d00001d72'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1508a00001d75'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62437d00001d75'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1508b00001d76'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62437e00001d77'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62438600001d78'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071e62438500001d7a'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1508e00001d79'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071dc1508f00001d7b'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071f02216900001d7d'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ea67800001d7c'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ea67400001d7e'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ea67600001d7f'
+  0%|          | 0/1120 [00:00<?, ?it/s]  1%|          | 11/1120 [00:00<00:10, 106.72it/s]  2%|▏         | 22/1120 [00:00<00:10, 107.29it/s]  3%|▎         | 33/1120 [00:00<00:10, 107.51it/s]  4%|▍         | 44/1120 [00:00<00:10, 107.58it/s]  5%|▍         | 55/1120 [00:00<00:09, 107.70it/s]  6%|▌         | 66/1120 [00:00<00:09, 107.72it/s]  7%|▋         | 77/1120 [00:00<00:09, 106.33it/s]  8%|▊         | 88/1120 [00:00<00:09, 106.37it/s]  9%|▉         | 99/1120 [00:00<00:09, 106.82it/s] 10%|▉         | 110/1120 [00:01<00:09, 107.13it/s] 11%|█         | 121/1120 [00:01<00:09, 107.30it/s] 12%|█▏        | 132/1120 [00:01<00:09, 107.46it/s] 13%|█▎        | 143/1120 [00:01<00:09, 107.58it/s] 14%|█▍        | 154/1120 [00:01<00:08, 107.64it/s] 15%|█▍        | 165/1120 [00:01<00:08, 107.73it/s] 16%|█▌        | 176/1120 [00:01<00:08, 107.75it/s] 17%|█▋        | 187/1120 [00:01<00:08, 107.77it/s] 18%|█▊        | 198/1120 [00:01<00:08, 107.80it/s] 19%|█▊        | 209/1120 [00:01<00:08, 107.56it/s] 20%|█▉        | 220/1120 [00:02<00:08, 107.28it/s] 21%|██        | 231/1120 [00:02<00:08, 107.11it/s] 22%|██▏       | 242/1120 [00:02<00:08, 107.01it/s] 23%|██▎       | 253/1120 [00:02<00:08, 106.95it/s] 24%|██▎       | 264/1120 [00:02<00:08, 106.87it/s] 25%|██▍       | 275/1120 [00:02<00:07, 106.85it/s] 26%|██▌       | 286/1120 [00:02<00:07, 106.66it/s] 27%|██▋       | 297/1120 [00:02<00:07, 106.13it/s] 28%|██▊       | 308/1120 [00:02<00:07, 105.89it/s] 28%|██▊       | 319/1120 [00:02<00:07, 106.15it/s] 29%|██▉       | 330/1120 [00:03<00:07, 105.87it/s] 30%|███       | 341/1120 [00:03<00:07, 105.23it/s] 31%|███▏      | 352/1120 [00:03<00:07, 105.11it/s] 32%|███▏      | 363/1120 [00:03<00:07, 105.06it/s] 33%|███▎      | 374/1120 [00:03<00:07, 105.00it/s] 34%|███▍      | 385/1120 [00:03<00:07, 104.95it/s] 35%|███▌      | 396/1120 [00:03<00:06, 104.89it/s] 36%|███▋      | 407/1120 [00:03<00:06, 104.93it/s] 37%|███▋      | 418/1120 [00:03<00:06, 104.86it/s] 38%|███▊      | 429/1120 [00:04<00:06, 104.87it/s] 39%|███▉      | 440/1120 [00:04<00:06, 104.86it/s] 40%|████      | 451/1120 [00:04<00:06, 104.87it/s] 41%|████▏     | 462/1120 [00:04<00:06, 104.83it/s] 42%|████▏     | 473/1120 [00:04<00:06, 104.82it/s] 43%|████▎     | 484/1120 [00:04<00:06, 104.85it/s] 44%|████▍     | 495/1120 [00:04<00:05, 104.84it/s] 45%|████▌     | 506/1120 [00:04<00:05, 104.80it/s] 46%|████▌     | 517/1120 [00:04<00:05, 104.81it/s] 47%|████▋     | 528/1120 [00:04<00:05, 104.83it/s] 48%|████▊     | 539/1120 [00:05<00:05, 104.83it/s] 49%|████▉     | 550/1120 [00:05<00:05, 104.81it/s] 50%|█████     | 561/1120 [00:05<00:05, 104.81it/s] 51%|█████     | 572/1120 [00:05<00:05, 104.85it/s] 52%|█████▏    | 583/1120 [00:05<00:05, 104.81it/s] 53%|█████▎    | 594/1120 [00:05<00:05, 104.82it/s] 54%|█████▍    | 605/1120 [00:05<00:04, 104.82it/s] 55%|█████▌    | 616/1120 [00:05<00:04, 104.84it/s] 56%|█████▌    | 627/1120 [00:05<00:04, 104.85it/s] 57%|█████▋    | 638/1120 [00:06<00:04, 104.86it/s] 58%|█████▊    | 649/1120 [00:06<00:04, 104.86it/s] 59%|█████▉    | 660/1120 [00:06<00:04, 104.83it/s] 60%|█████▉    | 671/1120 [00:06<00:04, 104.85it/s] 61%|██████    | 682/1120 [00:06<00:04, 104.79it/s] 62%|██████▏   | 693/1120 [00:06<00:04, 104.79it/s] 63%|██████▎   | 704/1120 [00:06<00:03, 104.82it/s] 64%|██████▍   | 715/1120 [00:06<00:03, 104.84it/s] 65%|██████▍   | 726/1120 [00:06<00:03, 104.79it/s] 66%|██████▌   | 737/1120 [00:06<00:03, 104.81it/s] 67%|██████▋   | 748/1120 [00:07<00:03, 104.82it/s] 68%|██████▊   | 759/1120 [00:07<00:03, 104.86it/s] 69%|██████▉   | 770/1120 [00:07<00:03, 104.82it/s] 70%|██████▉   | 781/1120 [00:07<00:03, 104.81it/s] 71%|███████   | 792/1120 [00:07<00:03, 104.39it/s] 72%|███████▏  | 803/1120 [00:07<00:03, 104.45it/s] 73%|███████▎  | 814/1120 [00:07<00:02, 104.53it/s] 74%|███████▎  | 825/1120 [00:07<00:02, 104.62it/s] 75%|███████▍  | 836/1120 [00:07<00:02, 104.55it/s] 76%|███████▌  | 847/1120 [00:08<00:02, 104.66it/s] 77%|███████▋  | 858/1120 [00:08<00:02, 104.73it/s] 78%|███████▊  | 869/1120 [00:08<00:02, 104.64it/s] 79%|███████▊  | 880/1120 [00:08<00:02, 104.73it/s] 80%|███████▉  | 891/1120 [00:08<00:02, 104.76it/s] 81%|████████  | 902/1120 [00:08<00:02, 104.84it/s] 82%|████████▏ | 913/1120 [00:08<00:01, 104.85it/s] 82%|████████▎ | 924/1120 [00:08<00:01, 104.90it/s] 83%|████████▎ | 935/1120 [00:08<00:01, 104.38it/s] 84%|████████▍ | 946/1120 [00:08<00:01, 104.53it/s] 85%|████████▌ | 957/1120 [00:09<00:01, 104.64it/s] 86%|████████▋ | 968/1120 [00:09<00:01, 104.75it/s] 87%|████████▋ | 979/1120 [00:09<00:01, 104.80it/s] 88%|████████▊ | 990/1120 [00:09<00:01, 104.91it/s] 89%|████████▉ | 1001/1120 [00:09<00:01, 104.88it/s] 90%|█████████ | 1012/1120 [00:09<00:01, 104.95it/s] 91%|█████████▏| 1023/1120 [00:09<00:00, 104.92it/s] 92%|█████████▏| 1034/1120 [00:09<00:00, 104.77it/s] 93%|█████████▎| 1045/1120 [00:09<00:00, 104.61it/s] 94%|█████████▍| 1056/1120 [00:10<00:00, 103.24it/s] 95%|█████████▌| 1067/1120 [00:10<00:00, 102.64it/s] 96%|█████████▋| 1078/1120 [00:10<00:00, 102.95it/s] 97%|█████████▋| 1089/1120 [00:10<00:00, 103.47it/s] 98%|█████████▊| 1100/1120 [00:10<00:00, 103.81it/s] 99%|█████████▉| 1111/1120 [00:10<00:00, 104.10it/s]100%|██████████| 1120/1120 [00:10<00:00, 105.31it/s]
+... storing 'gene' as categorical
+... storing 'split' as categorical
+... storing 'str_batch' as categorical
+... storing 'genotype_next' as categorical
+... storing 'predicted_genotype' as categorical
+... storing 'predicted_celltype' as categorical
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ea68e00001d81'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071f02218400001d83'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ea68d00001d80'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071f02218600001d82'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ac60000001d85'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ac5ff00001d84'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ac60100001d86'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071b0ffb4b00001d87'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071b0ffb5500001d88'
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071b0ffb5200001d8a'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ac60400001d89'
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ac60300001d8b'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071b34acf300001d8d'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ac62a00001d8c'
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 725, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 681, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/local/projects-t3/lilab/vmenon/anaconda3/envs/scgpt_menon/lib/python3.10/shutil.py", line 679, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000071b34acf200001d8e'
+OSError: [Errno 16] Device or resource busy: '.nfs000000071c2ac62b00001d8e'
+  0%|          | 0/1120 [00:00<?, ?it/s]  1%|          | 11/1120 [00:00<00:10, 101.84it/s]  2%|▏         | 22/1120 [00:00<00:10, 105.23it/s]  3%|▎         | 33/1120 [00:00<00:10, 106.38it/s]  4%|▍         | 44/1120 [00:00<00:10, 106.83it/s]  5%|▍         | 55/1120 [00:00<00:09, 107.16it/s]  6%|▌         | 66/1120 [00:00<00:09, 107.37it/s]  7%|▋         | 77/1120 [00:00<00:09, 107.50it/s]  8%|▊         | 88/1120 [00:00<00:09, 107.59it/s]  9%|▉         | 99/1120 [00:00<00:09, 107.65it/s] 10%|▉         | 110/1120 [00:01<00:09, 107.72it/s] 11%|█         | 121/1120 [00:01<00:09, 107.75it/s] 12%|█▏        | 132/1120 [00:01<00:09, 107.76it/s] 13%|█▎        | 143/1120 [00:01<00:09, 106.27it/s] 14%|█▍        | 154/1120 [00:01<00:09, 106.46it/s] 15%|█▍        | 165/1120 [00:01<00:09, 104.74it/s] 16%|█▌        | 176/1120 [00:01<00:08, 105.56it/s] 17%|█▋        | 187/1120 [00:01<00:08, 106.21it/s] 18%|█▊        | 198/1120 [00:01<00:08, 106.66it/s] 19%|█▊        | 209/1120 [00:01<00:08, 106.91it/s] 20%|█▉        | 220/1120 [00:02<00:08, 107.18it/s] 21%|██        | 231/1120 [00:02<00:08, 107.39it/s] 22%|██▏       | 242/1120 [00:02<00:08, 107.47it/s] 23%|██▎       | 253/1120 [00:02<00:08, 107.56it/s] 24%|██▎       | 264/1120 [00:02<00:07, 107.62it/s] 25%|██▍       | 275/1120 [00:02<00:07, 107.35it/s] 26%|██▌       | 286/1120 [00:02<00:07, 107.48it/s] 27%|██▋       | 297/1120 [00:02<00:07, 107.60it/s] 28%|██▊       | 308/1120 [00:02<00:07, 107.66it/s] 28%|██▊       | 319/1120 [00:02<00:07, 107.70it/s] 29%|██▉       | 330/1120 [00:03<00:07, 107.70it/s] 30%|███       | 341/1120 [00:03<00:07, 106.02it/s] 31%|███▏      | 352/1120 [00:03<00:07, 106.56it/s] 32%|███▏      | 363/1120 [00:03<00:07, 106.96it/s] 33%|███▎      | 374/1120 [00:03<00:06, 107.23it/s] 34%|███▍      | 385/1120 [00:03<00:06, 107.40it/s] 35%|███▌      | 396/1120 [00:03<00:06, 107.49it/s] 36%|███▋      | 407/1120 [00:03<00:06, 107.59it/s] 37%|███▋      | 418/1120 [00:03<00:06, 107.63it/s] 38%|███▊      | 429/1120 [00:04<00:06, 107.67it/s] 39%|███▉      | 440/1120 [00:04<00:06, 107.71it/s] 40%|████      | 451/1120 [00:04<00:06, 106.79it/s] 41%|████▏     | 462/1120 [00:04<00:06, 107.08it/s] 42%|████▏     | 473/1120 [00:04<00:06, 107.25it/s] 43%|████▎     | 484/1120 [00:04<00:05, 107.40it/s] 44%|████▍     | 495/1120 [00:04<00:05, 107.51it/s] 45%|████▌     | 506/1120 [00:04<00:05, 107.60it/s] 46%|████▌     | 517/1120 [00:04<00:05, 107.66it/s] 47%|████▋     | 528/1120 [00:04<00:05, 106.92it/s] 48%|████▊     | 539/1120 [00:05<00:05, 107.17it/s] 49%|████▉     | 550/1120 [00:05<00:05, 107.36it/s] 50%|█████     | 561/1120 [00:05<00:05, 107.46it/s] 51%|█████     | 572/1120 [00:05<00:05, 107.57it/s] 52%|█████▏    | 583/1120 [00:05<00:04, 107.66it/s] 53%|█████▎    | 594/1120 [00:05<00:04, 107.74it/s] 54%|█████▍    | 605/1120 [00:05<00:04, 107.05it/s] 55%|█████▌    | 616/1120 [00:05<00:04, 107.26it/s] 56%|█████▌    | 627/1120 [00:05<00:04, 107.38it/s] 57%|█████▋    | 638/1120 [00:05<00:04, 107.50it/s] 58%|█████▊    | 649/1120 [00:06<00:04, 107.56it/s] 59%|█████▉    | 660/1120 [00:06<00:04, 107.63it/s] 60%|█████▉    | 671/1120 [00:06<00:04, 107.65it/s] 61%|██████    | 682/1120 [00:06<00:04, 106.38it/s] 62%|██████▏   | 693/1120 [00:06<00:04, 106.75it/s] 63%|██████▎   | 704/1120 [00:06<00:03, 107.07it/s] 64%|██████▍   | 715/1120 [00:06<00:03, 107.25it/s] 65%|██████▍   | 726/1120 [00:06<00:03, 107.16it/s] 66%|██████▌   | 737/1120 [00:06<00:03, 107.30it/s] 67%|██████▋   | 748/1120 [00:06<00:03, 107.45it/s] 68%|██████▊   | 759/1120 [00:07<00:03, 107.51it/s] 69%|██████▉   | 770/1120 [00:07<00:03, 107.34it/s] 70%|██████▉   | 781/1120 [00:07<00:03, 107.47it/s] 71%|███████   | 792/1120 [00:07<00:03, 107.55it/s] 72%|███████▏  | 803/1120 [00:07<00:02, 107.60it/s] 73%|███████▎  | 814/1120 [00:07<00:02, 107.64it/s] 74%|███████▎  | 825/1120 [00:07<00:02, 107.67it/s] 75%|███████▍  | 836/1120 [00:07<00:02, 107.69it/s] 76%|███████▌  | 847/1120 [00:07<00:02, 107.69it/s] 77%|███████▋  | 858/1120 [00:08<00:02, 106.45it/s] 78%|███████▊  | 869/1120 [00:08<00:02, 105.46it/s] 79%|███████▊  | 880/1120 [00:08<00:02, 106.14it/s] 80%|███████▉  | 891/1120 [00:08<00:02, 106.60it/s] 81%|████████  | 902/1120 [00:08<00:02, 106.78it/s] 82%|████████▏ | 913/1120 [00:08<00:01, 107.06it/s] 82%|████████▎ | 924/1120 [00:08<00:01, 107.25it/s] 83%|████████▎ | 935/1120 [00:08<00:01, 107.41it/s] 84%|████████▍ | 946/1120 [00:08<00:01, 107.50it/s] 85%|████████▌ | 957/1120 [00:08<00:01, 107.59it/s] 86%|████████▋ | 968/1120 [00:09<00:01, 107.62it/s] 87%|████████▋ | 979/1120 [00:09<00:01, 107.68it/s] 88%|████████▊ | 990/1120 [00:09<00:01, 106.95it/s] 89%|████████▉ | 1001/1120 [00:09<00:01, 107.20it/s] 90%|█████████ | 1012/1120 [00:09<00:01, 107.33it/s] 91%|█████████▏| 1023/1120 [00:09<00:00, 107.48it/s] 92%|█████████▏| 1034/1120 [00:09<00:00, 107.09it/s] 93%|█████████▎| 1045/1120 [00:09<00:00, 107.25it/s] 94%|█████████▍| 1056/1120 [00:09<00:00, 107.40it/s] 95%|█████████▌| 1067/1120 [00:09<00:00, 106.77it/s] 96%|█████████▋| 1078/1120 [00:10<00:00, 107.03it/s] 97%|█████████▋| 1089/1120 [00:10<00:00, 107.17it/s] 98%|█████████▊| 1100/1120 [00:10<00:00, 107.30it/s] 99%|█████████▉| 1111/1120 [00:10<00:00, 106.90it/s]100%|██████████| 1120/1120 [00:10<00:00, 107.19it/s]
+... storing 'gene' as categorical
+... storing 'split' as categorical
+... storing 'str_batch' as categorical
+... storing 'genotype_next' as categorical
+... storing 'predicted_genotype' as categorical
+... storing 'predicted_celltype' as categorical

@@ -46,8 +46,7 @@ from perttf.model.train_data_gen import produce_training_datasets
 from perttf.model.train_function import train, wrapper_train, eval_testdata
 import wandb, random
 from sklearn.model_selection import KFold
-from pathlib import Path
-import matplotlib.pyplot as plt
+
 
 # ---- basic logging ----
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s:%(name)s: %(message)s")
